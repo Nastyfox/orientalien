@@ -46,21 +46,7 @@ let clickTimeout;
 let modal = null;
 let modalContent = null;
 
-import { getStorage, ref, getDownloadURL } from from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
-
-const storage = getStorage();
-const storageRef = ref(storage, 'images/1.png');
-
-export function initializePageScripts() {
-	// Obtenir l'URL de téléchargement
-	getDownloadURL(storageRef)
-	  .then((url) => {
-		  console.log(url);
-	  })
-	  .catch((error) => {
-		console.error('Erreur lors de la récupération de l\'image:', error);
-	  });
-  
+export function initializePageScripts() { 
   const usersRef = collection(db, "users");
 
   onSnapshot(usersRef, (snapshot) => {

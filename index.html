@@ -13,6 +13,20 @@
     <!-- Include UUID library from CDN -->
     <script type="module">
       import { loadPageSPA } from "./utils.js";
+	  
+	  import { getStorage, ref, getDownloadURL } from from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
+
+		const storage = getStorage();
+		const storageRef = ref(storage, 'images/1.png');
+		
+		// Obtenir l'URL de téléchargement
+	getDownloadURL(storageRef)
+	  .then((url) => {
+		  console.log(url);
+	  })
+	  .catch((error) => {
+		console.error('Erreur lors de la récupération de l\'image:', error);
+	  });
 
       // Maintain fullscreen on navigation
       window.addEventListener("hashchange", handleHashChange);
