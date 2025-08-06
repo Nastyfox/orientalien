@@ -46,7 +46,7 @@ let clickTimeout;
 let modal = null;
 let modalContent = null;
 
-import { getStorage, ref, getDownloadURL } from "firebase/storage";
+import { getStorage, ref, getDownloadURL } from from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
 
 const storage = getStorage();
 const storageRef = ref(storage, 'images/1.png');
