@@ -1,0 +1,635 @@
+import { goBack, completeChallenge, loadChallenge } from "./utils-challenge.js";
+
+import {
+  collection,
+  getDoc,
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDocs,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+
+import { getUserTeam, getOrCreateUniqueId, loadPage } from "./utils.js";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBlBc7SqkqKbvAHHNOnnV1CurxAHkwg9-E",
+  authDomain: "web-compass-df2fe.firebaseapp.com",
+  projectId: "web-compass-df2fe",
+  storageBucket: "web-compass-df2fe.appspot.com",
+  messagingSenderId: "834740391251",
+  appId: "1:834740391251:web:c862255165e426f39465a6",
+  measurementId: "G-6QHSKR9SSB",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Ensure db is defined
+
+let targetId; // Make targetId a global variable
+let blinker,
+  morseAlphabetDiv,
+  morsePattern,
+  morsePatternLettersOnly,
+  morseButton,
+  resetButton,
+  feedback = 0;
+let userPattern = [];
+let isListening = false;
+let morseCodeFunction = null;
+let listUsers = [];
+let currentUser = 0;
+let fullMessage = false;
+let teamName = null;
+let displayAlphabet = false;
+
+const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
+
+export async function initializePageScripts(challengeId) {
+  // Wait for the CSS file to load before showing the content
+  const stylesheet = document.getElementById("main-stylesheet");
+  stylesheet.onload = function () {
+    document.getElementById("loader").style.display = "none"; // Hide loader
+    document.body.style.display = "flex"; // Show body
+  };
+
+  // Fallback in case of an error loading the stylesheet
+  stylesheet.onerror = function () {
+    document.getElementById("loader").innerText = "Failed to load styles.";
+  };
+
+  if (challengeId) {
+    console.log(`Challenge ID: ${challengeId}`);
+    document.getElementById("backButton").addEventListener("click", goBack);
+    blinker = document.getElementById("blinker");
+    morseAlphabetDiv = document.getElementById("morse-alphabet");
+    feedback = document.getElementById("feedback");
+    resetButton = document.getElementById("reset-morse-code");
+
+    resetButton.addEventListener("click", () => {
+      resetMorseCode(true);
+    }); // Pass the parameter you want
+
+    // Start listening for user tap input
+    morseButton = document.getElementById("reproduce-morse-code");
+
+    // Desktop touch support
+    morseButton.addEventListener("mouseup", handleTapEnd);
+    morseButton.addEventListener("mousedown", handleTapStart);
+
+    /*
+    // Mobile touch support
+    morseButton.addEventListener("touchstart", handleTapStart);
+    morseButton.addEventListener("touchend", handleTapEnd);
+    */
+
+    loadChallenge(challengeId)
+      .then(async (target) => {
+        targetId = target;
+        console.log("Target ID after loading challenge:", targetId);
+
+        // Load the teamName after loading the targetId
+        teamName = await getUserTeam(db, phoneId);
+        console.log("Team Name after loading:", teamName);
+
+        // After targetId and teamName are loaded, run all targetId-dependent logic here
+        checkForMorseAlphabet(targetId, teamName)
+          .then((alphabetReady) => {
+            console.log(alphabetReady);
+            if (!alphabetReady) {
+              startMorseCode("E"); // Initial start
+
+              morseCodeFunction = setInterval(() => {
+                startMorseCode("E"); // Repeat every minute (60,000 ms)
+              }, 60000);
+            }
+          })
+          .catch((error) => {
+            console.error("Error checking for Morse alphabet:", error);
+          });
+      })
+      .catch((error) => {
+        console.error("Error loading challenge:", error);
+      });
+  } else {
+    console.error("Challenge ID is missing.");
+  }
+}
+
+let unsubscribeSnapshot; // Variable to hold the unsubscribe function
+
+// Function to stop listening to the snapshot
+function stopListening() {
+  if (unsubscribeSnapshot) {
+    unsubscribeSnapshot(); // Call the unsubscribe function
+    unsubscribeSnapshot = null; // Clear the reference
+    console.log("Stopped listening for snapshot updates.");
+  }
+}
+
+async function checkForMorseAlphabet() {
+  console.log("Target ID:", targetId);
+  console.log("Team Name:", teamName); // Log to ensure teamName is correctly defined
+
+  const challengeRef = doc(db, "challenges", targetId); // Firestore document reference
+
+  return new Promise((resolve, reject) => {
+    try {
+      let initialResolved = false; // Track if the promise was resolved
+
+      unsubscribeSnapshot = onSnapshot(challengeRef, (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const challengeData = docSnapshot.data();
+          console.log("Challenge data:", challengeData);
+
+          const teamArray = challengeData[teamName] || [];
+          console.log("Team Array:", teamArray);
+
+          // Ensure that the array exists and is not empty before accessing the first element
+          if (teamArray.length > 0) {
+            const morseAlphabet = teamArray[0]?.morseAlphabet || false; // Safely access morseAlphabet
+            console.log("Morse Alphabet Value:", morseAlphabet);
+
+            // Resolve the promise with the initial value on the first snapshot
+            if (!initialResolved) {
+              initialResolved = true;
+              resolve(morseAlphabet); // Resolve the promise with the current value of morseAlphabet
+            }
+
+            // If morseAlphabet is true, display the alphabet
+            if (morseAlphabet === true && !displayAlphabet) {
+              console.log("Morse alphabet set to true, triggering display.");
+              displayAlphabetAndStartMorseCode(); // Trigger display logic
+              stopListening(); // Stop listening after the change
+            }
+          } else {
+            console.log("Team array is empty or not found.");
+            resolve(false); // Resolve false if the array is empty or doesn't contain valid data
+          }
+        } else {
+          console.log("Document does not exist.");
+          resolve(false); // Resolve with false if the document doesn't exist
+        }
+      });
+    } catch (error) {
+      console.error("Error checking for Morse alphabet:", error);
+      reject(error); // Reject the promise if there's an error
+    }
+  });
+}
+
+// Morse code dictionary (A-Z, 0-9)
+const morseCode = {
+  A: ".-",
+  B: "-...",
+  C: "-.-.",
+  D: "-..",
+  E: ".",
+  F: "..-.",
+  G: "--.",
+  H: "....",
+  I: "..",
+  J: ".---",
+  K: "-.-",
+  L: ".-..",
+  M: "--",
+  N: "-.",
+  O: "---",
+  P: ".--.",
+  Q: "--.-",
+  R: ".-.",
+  S: "...",
+  T: "-",
+  U: "..-",
+  V: "...-",
+  W: ".--",
+  X: "-..-",
+  Y: "-.--",
+  Z: "--..",
+  0: "-----",
+  1: ".----",
+  2: "..---",
+  3: "...--",
+  4: "....-",
+  5: ".....",
+  6: "-....",
+  7: "--...",
+  8: "---..",
+  9: "----.",
+};
+
+// Function to convert text to Morse code vibration pattern
+function convertTextToMorse(text) {
+  const dotTime = 100; // Vibration time for dot
+  const dashTime = 300; // Vibration time for dash
+  const letterPause = 600; // Pause between letters
+  const wordPause = 1400; // Pause between words
+  const betweenSignalPause = 200; // Pause between dots and dashes in the same letter
+
+  const vibrationPattern = [];
+
+  // Convert the text into upper case for matching the Morse code dictionary
+  text = text.toUpperCase();
+  morsePatternLettersOnly = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+
+    if (char === " ") {
+      vibrationPattern.push(wordPause); // Add a longer pause for spaces between words
+    } else if (morseCode[char]) {
+      const morseSignals = morseCode[char];
+
+      // For each dot or dash in the letter, push the appropriate vibration time
+      for (let j = 0; j < morseSignals.length; j++) {
+        if (morseSignals[j] === ".") {
+          vibrationPattern.push(dotTime); // Vibrate for dot
+          morsePatternLettersOnly.push("short");
+        } else if (morseSignals[j] === "-") {
+          vibrationPattern.push(dashTime); // Vibrate for dash
+          morsePatternLettersOnly.push("long");
+        }
+
+        // Push the pause between dots and dashes, except for the last signal in the letter
+        if (j < morseSignals.length - 1) {
+          vibrationPattern.push(betweenSignalPause);
+        }
+      }
+
+      // After each letter, add a pause
+      if (i < text.length - 1) {
+        vibrationPattern.push(letterPause);
+      }
+    }
+  }
+
+  //feedback.innerHTML = morsePatternLettersOnly;
+
+  return vibrationPattern;
+}
+
+let controller = new AbortController(); // Create a controller
+let signal = controller.signal; // Extract the signal
+
+// Function to visually blink the screen in sync with the vibration
+function blinkPattern(pattern, abortSignal) {
+  return new Promise((resolve, reject) => {
+    const blinker = document.getElementById("blinker");
+    let currentStep = 0;
+
+    if (abortSignal && abortSignal.aborted) {
+      console.log("Blinking already aborted.");
+      resolve(); // Resolve the promise if already aborted
+      return;
+    }
+
+    // Listen for abort event
+    abortSignal?.addEventListener("abort", () => {
+      console.log("Blinking aborted.");
+      blinker.style.display = "none"; // Hide blinker immediately
+      resolve(); // Resolve the promise to indicate blinking stopped
+    });
+
+    // Function to toggle blinker on/off
+    function blink() {
+      if (abortSignal?.aborted) {
+        return; // If aborted, stop the pattern
+      }
+
+      if (currentStep >= pattern.length) {
+        blinker.style.display = "none"; // Hide blinker after pattern is complete
+        resolve(); // Resolve the promise after blinking is complete
+        return;
+      }
+
+      const duration = pattern[currentStep];
+      if (currentStep % 2 === 0) {
+        blinker.style.display = "block"; // Show blinker (on time)
+      } else {
+        blinker.style.display = "none"; // Hide blinker (off time)
+      }
+
+      currentStep++;
+      setTimeout(blink, duration); // Move to the next part of the pattern
+    }
+
+    blink(); // Start blinking pattern
+  });
+}
+
+// Function to vibrate the phone and return a Promise that resolves when vibration is done
+function vibratePattern(pattern, abortSignal) {
+  return new Promise((resolve, reject) => {
+    if (abortSignal && abortSignal.aborted) {
+      console.log("Vibration already aborted.");
+      resolve(); // Resolve the promise if already aborted
+      return;
+    }
+
+    // Listen for abort event
+    abortSignal?.addEventListener("abort", () => {
+      console.log("Vibration aborted.");
+      navigator.vibrate(0); // Stop vibration immediately
+      resolve(); // Resolve to indicate that the action was stopped
+    });
+
+    if ("vibrate" in navigator) {
+      navigator.vibrate(pattern); // Trigger the vibration pattern
+      // Calculate the total vibration time
+      const totalVibrationTime = pattern.reduce((acc, time) => acc + time, 0);
+      setTimeout(() => {
+        if (!abortSignal?.aborted) {
+          resolve(); // Resolve the promise after the vibration pattern finishes
+        }
+      }, totalVibrationTime);
+    } else {
+      console.log("Vibration is not supported.");
+      resolve(); // Resolve immediately if vibration is not supported
+    }
+  });
+}
+
+// Function to start the vibration and blinking pattern for Morse code
+async function startMorseCode(text) {
+  console.log(text);
+  morsePattern = convertTextToMorse(text);
+  console.log(morsePatternLettersOnly);
+
+  await Promise.all([
+    vibratePattern(morsePattern, signal),
+    blinkPattern(morsePattern, signal),
+  ])
+    .then(() => {
+      console.log("Patterns completed or stopped.");
+    })
+    .catch((error) => {
+      console.error("Error during pattern execution:", error);
+    });
+
+  console.log("NEW USER AFTER MESSAGE");
+  await newUserMessage(currentUserCount, signal);
+
+  /*
+  if (!resetMode) {
+    await newUserMessage(currentUserCount);
+    resetMode = false;
+  }*/
+}
+
+async function checkPattern() {
+  if (userPattern.length === morsePatternLettersOnly.length) {
+    if (
+      JSON.stringify(userPattern) === JSON.stringify(morsePatternLettersOnly)
+    ) {
+      //feedback.innerHTML = "Success! You matched the Morse code!";
+      displayAlphabetAndStartMorseCode(); // Display the alphabet when pattern is correct
+      //userCount = await getTeamUserCount(teamName);
+    } else {
+      //feedback.innerHTML = "Failed to match the Morse code.";
+    }
+    userPattern = []; // Reset the pattern
+  }
+}
+
+// Function to capture tap duration
+let tapStart = 0;
+function handleTapStart() {
+  tapStart = new Date().getTime();
+}
+
+function handleTapEnd() {
+  const tapEnd = new Date().getTime();
+  const tapDuration = tapEnd - tapStart;
+
+  if (tapDuration < 300) {
+    userPattern.push("short"); // Short tap
+    //feedback.innerHTML = userPattern;
+  } else {
+    userPattern.push("long"); // Long tap
+    //feedback.innerHTML = userPattern;
+  }
+
+  checkPattern();
+}
+
+let currentUserCount = 0;
+let userCount = 0;
+
+// Get the number of users in the current team from Firestore
+async function getTeamUserCount(teamName) {
+  console.log(userCount);
+  const usersRef = collection(db, "users");
+  const querySnapshot = await getDocs(usersRef);
+
+  querySnapshot.forEach((doc) => {
+    const userData = doc.data();
+    if (userData.team === teamName) {
+      console.log(userData);
+      listUsers.push(userData);
+      userCount++; // Count users in the same team
+    }
+    if (userData.phoneId === phoneId) {
+      currentUserCount = userCount;
+    }
+  });
+
+  console.log("TEAM USER COUNT");
+  await updateTeamArrayWithPhoneId(
+    listUsers[currentUser].team,
+    listUsers[currentUser].phoneId
+  );
+  return userCount;
+}
+
+// Get overlay image URL based on user count from Firestore
+async function getStringMorseCode(userCount) {
+  console.log(targetId);
+  const challengeDoc = await getDoc(doc(db, "challenges", targetId));
+
+  if (challengeDoc.exists()) {
+    let stringMorseCode = null;
+    switch (userCount) {
+      case 2:
+        stringMorseCode = challengeDoc.data().users2;
+        break;
+      case 3:
+        stringMorseCode = challengeDoc.data().users3;
+        break;
+      case 4:
+        stringMorseCode = challengeDoc.data().users4;
+        break;
+      case 5:
+        stringMorseCode = challengeDoc.data().users5;
+        break;
+      case 6:
+        stringMorseCode = challengeDoc.data().users6;
+        break;
+    }
+    if (stringMorseCode && stringMorseCode[currentUserCount - 1]) {
+      console.log(stringMorseCode[currentUserCount - 1]);
+      return stringMorseCode[currentUserCount - 1]; // Return corresponding image URL
+    }
+  }
+  return null; // Fallback if no image found
+}
+
+async function resetMorseCode(resetValue) {
+  controller.abort(); // Abort all tasks that are using this signal
+  const challengeRef = doc(db, "challenges", targetId); // Change this to your actual document path
+
+  try {
+    const challengeDoc = await getDoc(challengeRef);
+
+    if (challengeDoc.exists()) {
+      const challengeData = challengeDoc.data();
+      let teamArray = challengeData[teamName] || []; // Get the current array for the team, or an empty array if it doesn't exist
+
+      if (teamArray.length === 0) {
+        teamArray.push({
+          phoneId: listUsers[0].phoneId,
+          morseAlphabet: true,
+          reset: resetValue,
+        });
+      } else {
+        teamArray[0] = {
+          phoneId: listUsers[0].phoneId,
+          morseAlphabet: true,
+          reset: resetValue,
+        };
+      }
+
+      // Update the Firestore document with the new/updated array
+      await updateDoc(challengeRef, {
+        [teamName]: teamArray,
+      });
+
+      console.log(`Team array updated successfully for team: ${teamName}`);
+    } else {
+      console.error("Challenge document does not exist.");
+    }
+  } catch (error) {
+    console.error("Error updating team array:", error);
+  }
+}
+
+async function updateTeamArrayWithPhoneId(teamName, idValue) {
+  const challengeRef = doc(db, "challenges", targetId); // Change this to your actual document path
+
+  try {
+    const challengeDoc = await getDoc(challengeRef);
+
+    if (challengeDoc.exists()) {
+      const challengeData = challengeDoc.data();
+      let teamArray = challengeData[teamName] || []; // Get the current array for the team, or an empty array if it doesn't exist
+
+      if (teamArray.length === 0) {
+        teamArray.push({ phoneId: idValue, morseAlphabet: true, reset: false });
+      } else {
+        teamArray[0] = { phoneId: idValue, morseAlphabet: true, reset: false };
+      }
+
+      // Update the Firestore document with the new/updated array
+      await updateDoc(challengeRef, {
+        [teamName]: teamArray,
+      });
+
+      console.log(`Team array updated successfully for team: ${teamName}`);
+    } else {
+      console.error("Challenge document does not exist.");
+    }
+  } catch (error) {
+    console.error("Error updating team array:", error);
+  }
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+let resetMode = false;
+
+async function displayAlphabetAndStartMorseCode() {
+  morseAlphabetDiv.style.display = "block"; // Display Morse alphabet
+  resetButton.style.display = "inline-block";
+  morseButton.style.display = "none";
+  clearInterval(morseCodeFunction);
+
+  displayAlphabet = true;
+  console.log("DISPLAY");
+
+  //teamName = await getUserTeam(db, phoneId);
+  userCount = await getTeamUserCount(teamName);
+
+  const stringMorseCode = await getStringMorseCode(userCount);
+  console.log(userCount + " " + stringMorseCode);
+
+  fullMessage = true;
+
+  //await updateTeamArrayWithPhoneId(teamName, 0);
+
+  const challengeRef = doc(db, "challenges", targetId); // Change this to your actual document path
+  onSnapshot(challengeRef, (docSnapshot) => {
+    if (docSnapshot.exists()) {
+      const challengeData = docSnapshot.data();
+      console.log(challengeData);
+      const teamArray = challengeData[teamName] || []; // Get the current array for the team, or an empty array if it doesn't exist
+      console.log(teamName);
+      console.log(teamArray[0].phoneId);
+      if (teamArray[0].phoneId === phoneId) {
+        controller = new AbortController(); // Create a new controller
+        signal = controller.signal; // Get the new signal
+        startMorseCode(stringMorseCode);
+      }
+      /*
+      if (teamArray[0].reset === true) {
+        resetMorseCode(false);
+        resetMode = true;
+      }*/
+    }
+  });
+}
+
+async function newUserMessage(value, abortSignal) {
+  return new Promise((resolve, reject) => {
+    if (abortSignal && abortSignal.aborted) {
+      console.log("newUserMessage already aborted.");
+      resolve(); // Resolve the promise if already aborted
+      return;
+    }
+
+    // Listen for abort event
+    abortSignal?.addEventListener("abort", () => {
+      console.log("newUserMessage aborted.");
+      navigator.vibrate(0); // Stop vibration immediately
+      resolve(); // Resolve to indicate that the action was stopped
+    });
+
+    if (!fullMessage) {
+      console.log("newUserMessage is not supported.");
+      resolve(); // Resolve immediately if vibration is not supported
+      return;
+    }
+
+    currentUser = value;
+    if (currentUser > userCount - 1) {
+      currentUser = 0;
+      // Here we resolve, but to wait for 10 seconds, we need to handle the `delay` outside
+      resolve(delay(10000));
+    } else {
+      resolve();
+    }
+  })
+  .then(async () => {
+    // Continue logic here after delay or other promise resolution
+    console.log("NEW USER MESSAGE");
+    await updateTeamArrayWithPhoneId(
+      listUsers[currentUser].team,
+      listUsers[currentUser].phoneId
+    );
+  });
+}

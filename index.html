@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web App</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link id="dynamic-css" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="content"></div>
+
+    <!-- Include UUID library from CDN -->
+    <script type="module">
+      import { loadPageSPA } from "./utils.js";
+
+      // Maintain fullscreen on navigation
+      window.addEventListener("hashchange", handleHashChange);
+
+      // Define the routing function
+      function handleHashChange() {
+        const params = getHashParams();
+        const page = params.page; // Remove the `#`
+        const id = params.id;
+        
+        if (page) {
+          console.log(`Loading page: ${page}`);
+          loadPageSPA(page, id); // Dynamically load the page based on the hash
+        } else {
+          console.log("No hash, loading default page: join-team");
+          loadPageSPA("join-team"); // Default page
+        }
+      }
+
+      function getHashParams() {
+        const hash = window.location.hash.substring(1); // Remove the leading `#`
+        return hash.split("&").reduce((params, param) => {
+          const [key, value] = param.split("=");
+          params[key] = decodeURIComponent(value || ""); // Handle cases where value might be empty
+          return params;
+        }, {});
+      }
+
+      // Remove hash on page load
+      window.addEventListener("load", () => {
+        if (window.location.hash) {
+          const urlWithoutHash = window.location.href.split("#")[0];
+          history.replaceState(null, "", urlWithoutHash); // Remove the hash without reloading
+          console.log("Removed hash from URL.");
+        }
+        handleHashChange(); // Handle the current route
+      });
+    </script>
+  </body>
+</html>

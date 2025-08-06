@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <title>Morse Code Vibration</title>
+    <link
+      rel="stylesheet"
+      href="morse-code-challenge.css"
+      id="main-stylesheet"
+    />
+    <link rel="stylesheet" href="challenge.css" />
+    <style>
+      body {
+        display: none; /* Hide body by default */
+      }
+      #loader {
+        font-size: 24px;
+        text-align: center;
+        margin: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="loader"></div>
+    <div class="challenge-page">
+      <div class="challenge-container">
+        <div id="challenge"></div>
+        <input type="text" id="answer" placeholder="Ta réponse..." />
+        <button id="submitAnswerButton">Répondre</button>
+        <button id="hintButton">Afficher les indices</button>
+        <button id="reproduce-morse-code">Appuyer ?</button>
+        <button id="backButton">Retour à la carte</button>
+        <div id="feedback"></div>
+        <div id="blinker"></div>
+        <div id="morse-alphabet">
+          <h2>Morse Code Alphabet</h2>
+          <div class="morse-grid">
+            <div class="morse-item">
+              <span class="code">.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.--.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-...</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.-.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.---</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">--.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-..</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-.--</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">...</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">..-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">--.-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">---</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.-..</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-..-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-.-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">..</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">...-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.--</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">....</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">--</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">--..</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">.-</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">-.-.</span>
+            </div>
+            <div class="morse-item">
+              <span class="code">..-.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- New button -->
+      </div>
+    </div>
+
+    <div id="hintModal" class="modal-hints">
+      <div id="hintsContainer" class="modal-content-hints">
+        <span id="closeHints" class="close-hints">&times;</span>
+        <div id="hintsTitle">Indices</div>
+        <div id="hintsContent"></div>
+        <div id="hintCost"></div>
+        <button id="newHint">Nouvel indice</button>
+      </div>
+    </div>
+    
+        <!-- Icons Container -->
+    <div id="icons-container">
+      <!-- Notes Icon -->
+      <div id="notesIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/pencil.png?v=1751371521152"
+          alt="Notes"
+          class="notes-icon"
+        />
+      </div>
+    </div>
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal hidden">
+      <div class="modal-content notes">
+        <span class="close">&times;</span>
+        <iframe src="notes.html" id="notesIframe"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+    
+    <!-- Fireworks container -->
+    <div class="fireworks-container" id="fireworks-container"></div>
+
+    <script src="morse-code-challenge.js"></script>
+  </body>
+</html>

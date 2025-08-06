@@ -1,0 +1,33 @@
+.notification-dot {
+  position: absolute;
+  top: 10px; /* Adjust the position according to where you want the dot to appear */
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  background-color: red;
+  border-radius: 50%;
+  display: none; /* Initially hidden */
+}
+
+.map {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1; /* Ensure the map is above other elements */
+}
+
+.marker {
+  z-index: 2; /* Ensure markers are clickable */
+}
+
+.leaflet-popup-content-wrapper {
+  background: transparent !important; /* Removes the white background */
+  border: none !important; /* Optional: Removes any border around the content */
+  box-shadow: none !important;
+}
+
+.leaflet-popup-tip {
+  background: transparent !important; /* Removes the white background */
+  border: none !important; /* Optional: Removes any border around the content */
+  box-shadow: none !important;
+}

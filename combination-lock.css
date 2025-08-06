@@ -1,0 +1,130 @@
+/* styles.css */
+
+.myLock {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.myLock .lockInset {
+  position: relative;
+  padding: 5%;
+  background: linear-gradient(white, #dcd3ca);
+  border-radius: 15px;
+  box-shadow: inset 0 -8px 4px -4px #b1aaa1, 0 7px 10px rgba(0, 0, 0, 0.07),
+    0 14px 10px rgba(0, 0, 0, 0.07), 0 20px 10px rgba(0, 0, 0, 0.07),
+    0 27px 10px rgba(0, 0, 0, 0.07), 0 34px 10px rgba(0, 0, 0, 0.07),
+    0 2px 3px 1px rgba(0, 0, 0, 0.5);
+  margin-top: 20px;
+}
+
+.myLock .lockLine {
+  position: absolute;
+  margin: auto -5%;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  height: 2%;
+  background: linear-gradient(
+    rgba(0, 0, 0, 0.2) 1px,
+    transparent 1px,
+    transparent 3px,
+    rgba(0, 0, 0, 0.3) 3px
+  );
+}
+
+.myLock .lockWrapper {
+  position: relative;
+  background: linear-gradient(
+    black 13%,
+    #403c3a,
+    black 75%,
+    #110c14,
+    black 85%
+  );
+  border-radius: 8px;
+}
+
+.myLock .dial {
+  display: inline-block;
+  vertical-align: top;
+  height: 100%;
+  margin: 0 1%;
+  background: linear-gradient(
+    #000000 0%,
+    #000006 3%,
+    #08000d 4%,
+    #292527 7%,
+    #55514c 9%,
+    #847f76 11%,
+    #979289 12%,
+    #bab3a9 15%,
+    #d9cfc6 17%,
+    #f4eae1 19%,
+    #fff4ec 20%,
+    #fffffc 22%,
+    #ffffff 24%,
+    #fffffe 33%,
+    #fffdf5 35%,
+    #fef3eb 37%,
+    #d4ccc2 45%,
+    #ada69d 54%,
+    #726d66 65%,
+    #595550 71%,
+    #4f4b47 74%,
+    #4b4743 76%,
+    #4b4743 79%,
+    #4f4b47 80%,
+    #6a665f 84%,
+    #6d6861 85%,
+    #6a665f 88%,
+    #65605a 89%,
+    #54504b 91%,
+    #0d0711 98%,
+    #02000a 99%,
+    #000004 100%
+  );
+  overflow: hidden;
+  font-size: 25px;
+  font-family: arial;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5), 0 -1px 0 rgba(0, 0, 0, 0.5),
+    0 -2px 0 rgba(255, 255, 255, 0.1);
+  color: #827d74;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2), 0 8px 10px rgba(0, 0, 0, 0.2),
+    0 13px 10px rgba(0, 0, 0, 0.2);
+  max-height: 100px;
+}
+
+.myLock .dial ol {
+  display: inline;
+  position: relative;
+  top: -22px;
+}
+
+.myLock .dial ol li {
+  font-weight: 600;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.myLock .shadow {
+  pointer-events: none;
+  position: absolute;
+  top: 0;
+  background: linear-gradient(
+    black 5%,
+    transparent 40%,
+    transparent 60%,
+    black 100%
+  );
+  border-radius: 8px;
+  height: 100%;
+  width: 100%;
+}
+
+.hidden{
+  display: none;
+}

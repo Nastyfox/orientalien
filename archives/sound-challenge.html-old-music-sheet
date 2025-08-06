@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Music Sheet Challenge</title>
+    <link rel="stylesheet" href="sound-challenge.css" />
+    <link rel="stylesheet" href="sound-challenge-music-sheet.css" />
+    <link rel="stylesheet" href="challenge.css" />
+  </head>
+  <body>
+    <div id="challenge-container">
+      <div id="debug"></div>
+      <div id="audio-container">
+        <!-- Messages for the selected team will be displayed here -->
+      </div>
+      <div id="challenge"></div>
+      <input type="text" id="answer" placeholder="Your answer" />
+      <button id="submitAnswerButton">Submit</button>
+      <div id="result" style="margin-top: 10px"></div>
+      <button id="backButton">Back to Map</button>
+      <!-- New button -->
+      <h1>Music Sheet Challenge</h1>
+      <p>Click on the music staff to input your note sequence:</p>
+
+      <!-- Music staff with clickable note areas -->
+      <div id="music-sheet">
+        <canvas
+          id="staffCanvas"
+          width="600"
+          height="200"
+          style="border: 1px solid black"
+        ></canvas>
+      </div>
+      <button id="clearSheetButton">Clear Sheet</button>
+      <button id="play-sequence">Play Sequence</button>
+      <button id="correct-sequence">Listen correct Sequence</button>
+      <button id="submit-sequence">Submit Sequence</button>
+
+      <p id="sequenceResult"></p>
+    </div>
+    <script src="sound-challenge.js"></script>
+  </body>
+</html>

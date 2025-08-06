@@ -1,0 +1,251 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f9f9;
+}
+
+/* Full-page splash screen */
+#splash-screen {
+  display: none; /* Hide splash screen by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1000; /* Ensure it appears above everything */
+  opacity: 1;
+  transition: opacity 0.5s ease-out;
+}
+
+/* Image styles */
+#splash-screen img {
+  position: absolute;
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(
+    -50%,
+    -50%
+  ); /* Offset by 50% of its width and height for perfect centering */
+  height: 100vh;
+  object-fit: contain; /* Ensures the whole image fits without being cropped */
+}
+
+#splash-screen.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hide the main content initially */
+#main-content {
+  display: none;
+}
+
+#teams-container {
+  display: flex;
+  flex-direction: column; /* Arrange teams in a single column */
+  gap: 20px; /* Add spacing between the cards */
+  padding: 10px 10px 0 0;
+  box-sizing: border-box;
+  height: 100vh;
+  position: relative; /* Ensure it's positioned relative to the rest of the content */
+  z-index: 1; /* Keeps it in the background */
+}
+
+.team-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  width: 90%; /* Card width takes up most of the container */
+  max-width: 400px;
+  margin: auto;
+  background: #ffffff;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  overflow: visible; /* Allow content to expand without being clipped */
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.team-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.background-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0 10px 0;
+  border-radius: 15px 15px 0 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+}
+
+.team-info {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.team-logo {
+  object-fit: cover;
+  user-select: none;
+  margin-right: 20px; /* Add spacing between the logo and the name */
+  width: 25%;
+}
+
+.team-logo-img {
+  width: 40px;
+  height: 40px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  margin-left: 10px;
+}
+
+.team-name {
+  user-select: none;
+  font-size: 1.2rem;
+  text-align: center;
+  padding: 10px;
+  margin: 0;
+  color: #ffffff;
+  word-wrap: break-word;
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.4;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  width: 75%;
+}
+
+.roles-container {
+  padding: 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.role-item {
+  padding: 10px 20px;
+  background: #e0f7fa;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  pointer-events: auto; /* Ensure the role elements can be clicked */
+  user-select: none; /* Disable text selection */
+}
+
+.role-item.disabled {
+  pointer-events: none; /* Disable interaction */
+}
+
+.role-item.selected-role {
+  color: white;
+}
+
+.role-item:hover {
+  background: #b2ebf2;
+}
+
+/* Modal Overlay (Hidden by Default) */
+#modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+  z-index: 10; /* High enough to overlay content */
+  justify-content: center;
+  align-items: center;
+}
+
+/* Modal Content (Centered Inside the Modal) */
+#modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  z-index: 10000; /* Ensure content is above the overlay */
+  min-width: 150px;
+}
+
+/* Close Button */
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: white;
+  user-select: none; /* Disable text selection */
+}
+
+.close:hover {
+  color: #000000;
+}
+
+#register-button {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 20px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100px; /* Prevents the button from stretching too wide */
+  width: auto; /* Ensures the button size adjusts to its content */
+  user-select: none; /* Disable text selection */
+}
+
+@media (max-width: 1024px) {
+  .team-card {
+    width: 90%; /* Full width for tablets */
+  }
+
+  #modal-content {
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+}
+
+@media (max-width: 768px) {
+  .team-card {
+    width: 90%; /* Full width for smaller screens */
+  }
+
+  #modal-content {
+    margin-left: 5%;
+    margin-right: 5%;
+  }
+}
+
+@media (max-width: 480px) {
+  .team-card h2 {
+    font-size: 1rem; /* Adjust for smaller screens */
+  }
+
+  .role-item {
+    padding: 8px 15px;
+  }
+
+  #register-button {
+    width: 100%;
+  }
+}

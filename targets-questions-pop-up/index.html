@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compass with Map</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+</head>
+<body>
+    <div class="compass-container">
+        <div class="compass">
+            <div class="needle" id="needle"></div>
+            <div class="direction" id="north">N</div>
+            <div class="direction" id="east">E</div>
+            <div class="direction" id="south">S</div>
+            <div class="direction" id="west">W</div>
+        </div>
+        <div id="map" class="map"></div>
+    </div>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <!-- Custom JS -->
+    <script src="script.js"></script>
+</body>
+</html>

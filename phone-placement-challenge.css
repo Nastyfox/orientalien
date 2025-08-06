@@ -1,0 +1,79 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Full height of the viewport */
+  overflow: hidden; /* Prevent scrollbars */
+  position: relative;
+}
+
+.challenge-container {
+  width: 400px; /* Fixed width */
+  text-align: center;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+.movable-image {
+  width: auto; /* Keep width auto to maintain aspect ratio */
+  height: auto; /* Will be set dynamically in JavaScript */
+  cursor: grab; /* Change cursor to indicate draggable */
+}
+
+.movable-image:active {
+  cursor: grabbing; /* Change cursor when dragging */
+}
+
+#image-container {
+  background-color: white;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw; /* Fill the width of the viewport */
+  height: 100vh; /* Fill the height of the viewport */
+  object-fit: cover; /* Maintain aspect ratio */
+  z-index: 1; /* Ensure the video is behind everything else */
+  display: none; /* Hide the camera video until started */
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  color: white;
+  z-index: 10;
+  background-color: red;
+  border-radius: 50%;
+  padding: 5px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+#open-challenge{
+  display : none;
+}

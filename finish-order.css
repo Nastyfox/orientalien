@@ -1,0 +1,93 @@
+/* Basic styling for the page */
+body {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  margin: 0;
+  background-color: #f0f0f0;
+}
+
+.team-box {
+  border: 1px solid #dddddd;
+  margin-bottom: 20px;
+  padding: 15px;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+/* Styles for Team Cards */
+.team-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 20px;
+  text-align: center;
+  max-width: 360px;
+  width: 75%;
+  margin: 20px auto;
+}
+
+.team-card h2 {
+  font-size: 1.5em;
+  color: #37474f;
+  margin-bottom: 10px;
+}
+
+.team-card button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #28a745;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+.team-card button:hover {
+  background-color: #218838;
+}
+
+/* Styles for the Buttons */
+.button-container {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.startTimer {
+  margin: 0 10px;
+  padding: 10px 20px;
+  font-size: 1em;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+  background-color: #007bff;
+  color: white;
+  transition: background-color 0.3s ease;
+}
+
+/* Styles for the Chrono */
+#chrono {
+  font-size: 1.5em;
+  color: #37474f;
+  margin-bottom: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Styles for Team Finish Time */
+.finish-time {
+  margin-top: 10px;
+  font-size: 1em;
+  color: #37474f;
+}
+
+
+button.disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+button.disabled:hover {
+  background-color: #cccccc;
+}

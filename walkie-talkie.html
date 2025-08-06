@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <title>Walkie Talkie App</title>
+    <link rel="stylesheet" href="walkie-talkie.css" />
+  </head>
+  <body>
+    <!-- Message Display Area -->
+    <div id="message-container">
+      <!-- Messages for the selected team will be displayed here -->
+    </div>
+
+    <!-- Input Area for Recording -->
+    <div id="input-container">
+      <button id="start-recording-btn">Nouveau message</button>
+    </div>
+
+    <div class="hidden">
+      <div class="timeline">
+        <div class="progress"></div>
+      </div>
+      <div class="controls">
+        <div class="play-container">
+          <div class="toggle-play play"></div>
+        </div>
+        <div class="time">
+          <div class="current">0:00</div>
+          <div class="divider">/</div>
+          <div class="length"></div>
+        </div>
+        <!--     credit for icon to https://saeedalipoor.github.io/icono/ -->
+        <div class="volume-container">
+          <div class="volume-button">
+            <div class="volume icono-volumeMedium"></div>
+          </div>
+
+          <div class="volume-slider">
+            <div class="volume-percentage"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="walkie-talkie.js"></script>
+  </body>
+</html>

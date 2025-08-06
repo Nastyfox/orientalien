@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Compass with Map</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="map.css" />
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <!-- Icons Container -->
+    <div id="icons-container">
+      <!-- Compass Icon -->
+      <div id="compassIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/compass.png?v=1726512440925"
+          alt="Boussole"
+          class="compass-icon"
+        />
+      </div>
+
+      <!-- Walkie-Talkie Icon -->
+      <div id="walkieTalkieIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/talkie-walkie.png?v=1726676212343"
+          alt="Walkie-Talkie"
+          class="walkie-talkie-icon"
+        />
+        <div class="notification-dot"></div>
+        <!-- Notification dot -->
+      </div>
+
+      <!-- Ranking Icon -->
+      <div id="rankingIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/ranking.png?v=1739789799126"
+          alt="Classement"
+          class="ranking-icon"
+        />
+      </div>
+
+      <!-- Notes Icon -->
+      <div id="notesIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/pencil.png?v=1751371521152"
+          alt="Notes"
+          class="notes-icon"
+        />
+      </div>
+    </div>
+
+    <!-- Modal for compass pop-up -->
+    <div id="compassModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <iframe id="compass-iframe" src="compass.html"></iframe>
+        <!-- Embed the compass page -->
+      </div>
+    </div>
+    <!-- Walkie-Talkie Modal -->
+    <div id="walkieTalkieModal" class="modal hidden">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <iframe src="walkie-talkie.html"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+    <!-- Ranking Modal -->
+    <div id="rankingModal" class="modal hidden">
+      <div class="modal-content ranking">
+        <span class="close">&times;</span>
+        <iframe src="ranking.html"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal hidden">
+      <div class="modal-content notes">
+        <span class="close">&times;</span>
+        <iframe src="notes.html" id="notesIframe"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+    <script
+      type="module"
+      src="https://unpkg.com/leaflet/dist/leaflet.js"
+    ></script>
+    <script type="module" src="map.js"></script>
+  </body>
+</html>

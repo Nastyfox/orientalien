@@ -1,0 +1,92 @@
+/* General reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.compass-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Compass Style */
+.compass {
+  position: relative;
+  width: 100vw; /* Responsive width */
+  max-width: 300px; /* Maximum size */
+  aspect-ratio: 1; /* Maintain square shape */
+  border: 5px solid #2c3e50;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff, #ecf0f1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Degree markers */
+.degrees {
+  position: absolute;
+  width: 1%; /* Proportional marker width */
+  height: 5%; /* Proportional marker height */
+  background: #34495e;
+  left: 49.5%;
+  top: 45%;
+  transform-origin: 50% 100%; /* Center the degrees perfectly */
+}
+
+/* Degree value labels */
+.degree-label {
+  position: absolute;
+  font-size: 3vw; /* Scales with compass size */
+  color: #34495e;
+  transform: translateX(-50%) translateY(150%); /* Offset below the marker */
+  white-space: nowrap;
+}
+
+/* Compass Needle */
+.needle {
+  position: absolute;
+  width: 2%;
+  height: 40%;
+  background: linear-gradient(to bottom, #e74c3c, #c0392b);
+  left: 50%;
+  top: 50%;
+  transform-origin: bottom center;
+  transform: translateX(-50%) translateY(-100%) rotate(0deg);
+  border-radius: 2px;
+}
+
+/* Direction labels */
+.direction {
+  position: absolute;
+  font-size: 5vw;
+  font-weight: bold;
+  color: #34495e;
+}
+
+#north {
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#east {
+  top: 50%;
+  right: 15%;
+  transform: translateY(-50%);
+}
+
+#south {
+  bottom: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+#west {
+  top: 50%;
+  left: 15%;
+  transform: translateY(-50%);
+}

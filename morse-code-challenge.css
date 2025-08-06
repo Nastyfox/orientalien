@@ -1,0 +1,124 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.challenge-container {
+  width: 400px;
+  text-align: center;
+}
+
+button {
+  user-select: none; /* Prevents text selection */
+  -webkit-user-select: none; /* For Safari */
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+#blinker {
+  width: 10px; /* Smaller size */
+  height: 10px; /* Smaller size */
+  background-color: black;
+  display: none; /* Hidden by default */
+  position: fixed;
+  top: 5px; /* Position in the top-left corner */
+  left: 5px; /* Position in the top-left corner */
+  border-radius: 50%; /* Circular shape */
+}
+
+#morse-alphabet {
+  display: none;
+}
+
+.morse-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+}
+
+.morse-item {
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 5px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.morse-item:hover {
+  transform: scale(1.1);
+}
+
+.letter {
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.code {
+  display: block;
+  margin-top: 5px;
+  font-size: 18px;
+  color: #555555;
+}
+
+#feedback {
+  font-size: 16px;
+  margin-top: 20px;
+}
+
+@keyframes shake-short {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-2px, 2px);
+  }
+  50% {
+    transform: translate(2px, -2px);
+  }
+  75% {
+    transform: translate(-2px, 2px);
+  }
+}
+
+@keyframes shake-long {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-3px, 3px);
+  }
+  40% {
+    transform: translate(3px, -3px);
+  }
+  60% {
+    transform: translate(-3px, 3px);
+  }
+  80% {
+    transform: translate(3px, -3px);
+  }
+}
+
+.vibrate-short {
+  animation: shake-short 0.2s ease-in-out;
+}
+
+.vibrate-long {
+  animation: shake-long 0.6s ease-in-out;
+}

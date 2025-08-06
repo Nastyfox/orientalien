@@ -1,0 +1,241 @@
+/* Page Background */
+body {
+  font-family: "Roboto", sans-serif;
+  background: radial-gradient(circle, #83a4d4, #b6fbff);
+}
+
+/* Question Page */
+.challenge-page {
+  height: 100%;
+  width: 100%;
+}
+
+.challenge-container {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  padding: 30px;
+  text-align: center;
+  max-width: 360px;
+  width: 75%;
+  animation: slideIn 0.6s ease-out forwards; /* Animation with 'forwards' to maintain end state */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(
+    -50%,
+    -50%
+  ); /* Ensures the container is always centered */
+}
+
+/* Question Text */
+#challenge {
+  font-size: 1.8em;
+  color: #37474f;
+  margin-bottom: 20px;
+  font-weight: bold;
+}
+
+/* Input Field */
+#answer {
+  box-sizing: border-box; /* Ensures padding is included in the width */
+  width: 100%; /* Ensures the field never overflows */
+  max-width: 100%; /* Prevents field from exceeding its parent container */
+  padding: 12px 16px; /* Internal spacing for better usability */
+  font-size: 1em; /* Text size */
+  border: 2px solid #90caf9; /* Border styling */
+  border-radius: 8px; /* Rounded corners */
+  margin-bottom: 20px; /* Spacing below the field */
+  outline: none; /* Removes the default outline on focus */
+  transition: all 0.3s ease; /* Smooth interaction effects */
+}
+
+#answer:focus {
+  border-color: #1e88e5; /* Highlighted border on focus */
+  box-shadow: 0 0 10px rgba(30, 136, 229, 0.3); /* Subtle glow on focus */
+}
+
+/* Submit Button */
+#submitAnswerButton {
+  background: linear-gradient(to right, #4caf50, #81c784);
+  color: #ffffff;
+  padding: 12px 20px;
+  font-size: 1em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.3s ease;
+  margin-bottom: 10px;
+}
+
+#submitAnswerButton:hover {
+  background: linear-gradient(to right, #388e3c, #66bb6a);
+}
+
+#submitAnswerButton:active {
+  transform: scale(0.98);
+}
+
+#backButton {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 16px;
+  font-size: 0.9em;
+  color: #616161; /* Subtle text color */
+  background-color: #f5f5f5; /* Neutral background */
+  border: 1px solid #e0e0e0; /* Light border for subtle definition */
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+#backButton:hover {
+  background-color: #e0e0e0; /* Slightly darker on hover */
+  color: #424242; /* Darker text on hover */
+  border-color: #bdbdbd; /* Adjust border for hover effect */
+}
+
+#backButton:active {
+  background-color: #d6d6d6; /* Even darker when clicked */
+  border-color: #9e9e9e;
+}
+
+/* Left arrow icon */
+#backButton::before {
+  content: "←"; /* Unicode arrow */
+  font-size: 1.2em; /* Adjust size for better visibility */
+  margin-right: 8px; /* Space between the arrow and the text */
+  color: inherit; /* Matches the text color */
+}
+
+/* Animation for Card */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translate(
+      -50%,
+      calc(-50% + 50px)
+    ); /* Start slightly below the center */
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%); /* End centered */
+  }
+}
+
+/* Fireworks container */
+.fireworks-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: hidden;
+}
+
+/* Keyframes for the curved rise */
+@keyframes rise {
+  0% {
+    transform: translateX(var(--startX)) translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(calc(var(--startX) + var(--controlX2)))
+      translateY(var(--finalHeight));
+    opacity: 1;
+  }
+}
+
+/* Keyframes for the explosion */
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--particleX), var(--particleY)) scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Firework rising dot */
+.firework {
+  position: absolute;
+  bottom: 0; /* Start at the bottom of the screen */
+  left: 50%; /* Center horizontally by default */
+  transform: translateX(var(--startX));
+  width: 0.25vmin; /* Adjusted for larger fireworks */
+  height: 0.25vmin; /* Adjusted for larger fireworks */
+  background-color: black;
+  border-radius: 50%;
+  animation: rise 2s cubic-bezier(0.25, 0.8, 0.5, 1) forwards;
+  z-index: 2;
+}
+
+/* Firework particles */
+.particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0.5vw; /* Adjusted to make the particles larger */
+  height: 0.5vw; /* Adjusted to make the particles larger */
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background-color: var(--particleColor);
+  animation: explode 1.5s ease-out forwards;
+  z-index: 1;
+}
+
+@media (max-width: 480px) {
+  .firework {
+    width: 0.5vmin; /* Even larger dot for mobile */
+    height: 0.5vmin;
+  }
+
+  .particle {
+    width: 2vw; /* Larger particles for mobile */
+    height: 2vw;
+  }
+}
+
+.incorrect-answer {
+  animation: shake 0.5s ease;
+}
+
+/* Animation for incorrect answer */
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-10px);
+  }
+  50% {
+    transform: translateX(10px);
+  }
+  75% {
+    transform: translateX(-10px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 480px) {
+  #challenge {
+    font-size: 1.5em;
+  }
+
+  #answer {
+    font-size: 0.9em;
+  }
+
+  #submitAnswerButton {
+    font-size: 0.9em;
+  }
+}

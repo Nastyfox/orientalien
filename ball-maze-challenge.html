@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <title>Ball Maze Challenge</title>
+    <link rel="stylesheet" href="ball-maze-challenge.css" />
+    <link rel="stylesheet" href="challenge.css" />
+    <link rel="stylesheet" href="combination-lock.css" />
+  </head>
+  <body>
+    <div class="challenge-page">
+      <div class="challenge-container">
+        <div id="maze-container">
+          <canvas id="maze"></canvas>
+        </div>
+
+        <div id="exitCode" class="image-container">
+          <img
+            src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/carre_bleu.jpg?v=1745599139149"
+            alt="Description of image"
+          />
+          <img
+            src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/carre_turquoise.jpg?v=1745599146027"
+            alt="Description of image"
+          />
+          <img
+            src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/carre_bordeaux.jpg?v=1745599140923"
+            alt="Description of image"
+          />
+          <img
+            src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/carre_dore.jpg?v=1745599142592"
+            alt="Description of image"
+          />
+        </div>
+
+        <div id="lock" data-dials="4"></div>
+
+        <button id="hintButton">Afficher les indices</button>
+        <button id="backButton">Retour à la carte</button>
+        <!-- Start camera button -->
+      </div>
+    </div>
+
+    <div id="hintModal" class="modal-hints">
+      <div id="hintsContainer" class="modal-content-hints">
+        <span id="closeHints" class="close-hints">&times;</span>
+        <div id="hintsTitle">Indices</div>
+        <div id="hintsContent"></div>
+        <div id="hintCost"></div>
+        <button id="newHint">Nouvel indice</button>
+      </div>
+    </div>
+    
+        <!-- Icons Container -->
+    <div id="icons-container">
+      <!-- Notes Icon -->
+      <div id="notesIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/pencil.png?v=1751371521152"
+          alt="Notes"
+          class="notes-icon"
+        />
+      </div>
+    </div>
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal hidden">
+      <div class="modal-content notes">
+        <span class="close">&times;</span>
+        <iframe src="notes.html" id="notesIframe"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+    
+    <!-- Fireworks container -->
+    <div class="fireworks-container" id="fireworks-container"></div>
+
+    <script src="ball-maze-challenge.js"></script>
+  </body>
+</html>

@@ -1,0 +1,154 @@
+import { goBack, completeChallenge, loadChallenge } from "./utils-challenge.js";
+
+import {
+  collection,
+  getDoc,
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+} from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+
+import { getUserTeam, getOrCreateUniqueId, loadPage } from "./utils.js";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBlBc7SqkqKbvAHHNOnnV1CurxAHkwg9-E",
+  authDomain: "web-compass-df2fe.firebaseapp.com",
+  projectId: "web-compass-df2fe",
+  storageBucket: "web-compass-df2fe.appspot.com",
+  messagingSenderId: "834740391251",
+  appId: "1:834740391251:web:c862255165e426f39465a6",
+  measurementId: "G-6QHSKR9SSB",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Ensure db is defined
+
+let targetId; // Make targetId a global variable
+
+export async function initializePageScripts(challengeId) {
+  if (challengeId) {
+    console.log(`Challenge ID: ${challengeId}`);
+    targetId = await loadChallenge(challengeId); // Use the challengeId to load the data
+
+    const submitButton = document.getElementById("submitAnswerButton");
+    if (submitButton) {
+      submitButton.addEventListener("click", checkAnswer);
+    } else {
+      console.error("Submit button not found");
+    }
+    document.getElementById("backButton").addEventListener("click", goBack);
+  } else {
+    console.error("Challenge ID is missing.");
+  }
+}
+
+// Function to check the user's answer
+async function checkAnswer() {
+  const userAnswer = document.getElementById("answer").value.trim();
+  const resultDiv = document.getElementById("result");
+
+  // Check if targetAnswer is defined
+  if (!window.targetAnswer) {
+    resultDiv.innerHTML =
+      "<span style='color: red;'>No challenge answer available.</span>";
+    return;
+  }
+
+  if (userAnswer.toLowerCase() === window.targetAnswer.toLowerCase()) {
+    await triggerFireworks(); // Wait for fireworks to complete
+
+    // Clear currentChallenge and add to completedChallenges
+    await completeChallenge(targetId);
+  } else {
+    const answerElement = document.getElementById("answer"); // Replace with your actual answer element
+    answerElement.classList.add("incorrect-answer");
+
+    // Optional: remove the animation class after the animation ends
+    setTimeout(() => {
+      answerElement.classList.remove("incorrect-answer");
+    }, 500); // Duration matches the animation length
+  }
+}
+
+let fireworksContainer = null;
+
+// Function to trigger fireworks
+async function triggerFireworks() {
+  fireworksContainer = document.getElementById("fireworks-container");
+  return new Promise((resolve) => {
+    // Generate multiple fireworks
+    for (let i = 0; i < 10; i++) {
+      const firework = document.createElement("div");
+      firework.classList.add("firework");
+
+      // Randomize start position, curve, and heights
+      const startX = Math.random() * 100 - 50; // Horizontal offset (-50vw to 50vw)
+      const controlX2 = (Math.random() - 0.5) * 50; // Final curve (-25vw to 25vw)
+      const finalHeight = Math.random() * -35 - 50; // Final height (-80vh to -100vh)
+
+      // Set custom properties for the animation
+      firework.style.setProperty("--startX", `${startX}vw`);
+      firework.style.setProperty("--controlX2", `${controlX2}vw`);
+      firework.style.setProperty("--finalHeight", `${finalHeight}vh`);
+
+      // Add firework to the container
+      fireworksContainer.appendChild(firework);
+
+      // Trigger explosion after the rise animation ends
+      setTimeout(() => {
+        createExplosion(firework); // Create the explosion particles
+        firework.remove(); // Remove the black dot after it explodes
+      }, 1250); // Matches the duration of the 'rise' animation
+    }
+    // Resolve the promise after the fireworks animation is complete (1 second)
+    setTimeout(resolve, 3000);
+  });
+}
+
+// Function to create explosion particles
+function createExplosion(firework) {
+  const particleCount = 30; // Number of particles per explosion
+  const colors = ["red", "orange", "yellow", "blue", "purple", "lime", "cyan"];
+
+  for (let i = 0; i < particleCount; i++) {
+    const particle = document.createElement("div");
+    particle.className = "particle";
+
+    // Randomize particle direction, distance, size, and speed
+    const angle = Math.random() * 2 * Math.PI; // 0 to 2π radians
+    const distance = Math.random() * 20 + 5; // Random distance (5-25vmin)
+    const size = Math.random() * 2 + 0.5; // Random size for particles (0.5 to 2vmin)
+    const speed = Math.random() * 1.2 + 0.5; // Speed factor for each particle (0.5 to 1.7)
+
+    // Calculate x and y using random angle and distance
+    const x = Math.cos(angle) * distance;
+    const y = Math.sin(angle) * distance;
+
+    // Set particle properties for animation
+    particle.style.setProperty("--particleX", `${x}vmin`);
+    particle.style.setProperty("--particleY", `${y}vmin`);
+    particle.style.setProperty("--particleSize", `${size}vmin`);
+    particle.style.setProperty(
+      "--particleColor",
+      colors[Math.floor(Math.random() * colors.length)]
+    );
+    particle.style.setProperty("--particleSpeed", speed);
+
+    // Position the particle at the firework's end location
+    const rect = firework.getBoundingClientRect();
+    particle.style.left = `${rect.left + rect.width / 2}px`;
+    particle.style.top = `${rect.top + rect.height / 2}px`;
+
+    // Add particle to container
+    fireworksContainer.appendChild(particle);
+
+    // Remove the particle after the animation ends
+    setTimeout(() => particle.remove(), 1500); // Matches the duration of 'explode' animation
+  }
+}

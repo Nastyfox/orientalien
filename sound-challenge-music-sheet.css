@@ -1,0 +1,296 @@
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+.sheet-music {
+  font-size: 0.4em;
+  margin: auto;
+  max-width: 144em;
+  padding-left: 16em;
+}
+
+.bar {
+  background-color: #ffffff;
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/stave.svg?v=1739012338109");
+  background-size: auto 100%;
+  background-repeat: repeat-x;
+  float: left;
+  height: 16em;
+  position: relative;
+  width: 32em;
+}
+
+.bar .stave-header {
+  background-color: #ffffff;
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/stave-header.svg?v=1739212131290");
+  background-size: auto 100%;
+  height: 16em;
+  left: -16em;
+  position: absolute;
+  width: 16em;
+}
+
+.bar:first-child .stave-header {
+  background-color: #ffffff;
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/stave-header-time-signature.svg?v=1739212078139");
+}
+
+.bar-line {
+  background-color: transparent;
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/bar-line.svg?v=1739012363855");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  height: 16em;
+  position: absolute;
+  right: 0;
+  width: 1em;
+}
+
+.bold-double-bar-line {
+  background-color: transparent;
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/bold-double-bar-line.svg?v=1739012360622");
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  height: 16em;
+  position: absolute;
+  right: 0;
+  width: 1.17em;
+}
+
+.half-note {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  float: left;
+  grid-column: span 4;
+  height: 16em;
+  justify-self: center;
+  margin: 0 2.58em;
+  width: 2.83em;
+}
+
+.half-note-spacer {
+  width: 4em;
+}
+
+.quarter-note {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  float: left;
+  grid-column: span 4;
+  height: 16em;
+  justify-self: center;
+  margin: 0 2.58em;
+  width: 2.83em;
+}
+
+.quarter-note.b6, .quarter-note.a6, .quarter-note.g5, .quarter-note.f5, .quarter-note.e5, .quarter-note.d5, .quarter-note.c5, .quarter-note.b5 {
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/quarter-note-down.svg?v=1739012344987");
+}
+
+.quarter-note.bdiese6, .quarter-note.adiese6, .quarter-note.gdiese5, .quarter-note.fdiese5, .quarter-note.ediese5, .quarter-note.ddiese5, .quarter-note.cdiese5, .quarter-note.bdiese5 {
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/quarter_note_down_diese.svg?v=1739485894560");
+  width: 5.8em;
+}
+
+.quarter-note.a5, .quarter-note.g4, .quarter-note.f4, .quarter-note.e4, .quarter-note.d4, .quarter-note.c4, .quarter-note.b4 {
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/quarter-note-up.svg?v=1739012341425");
+}
+
+.quarter-note.adiese5, .quarter-note.gdiese4, .quarter-note.fdiese4, .quarter-note.ediese4, .quarter-note.ddiese4, .quarter-note.cdiese4, .quarter-note.bdiese4 {
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/quarter_note_up_diese.svg?v=1739485736019");
+  width: 5.8em;
+}
+
+.eighth-note {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  float: left;
+  grid-column: span 2;
+  height: 16em;
+  justify-self: center;
+  margin: 0 0.58em;
+}
+
+.three-eighth-note {
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-size: auto 100%;
+  float: left;
+  grid-column: span 4;
+  height: 16em;
+  justify-self: center;
+  margin: 0 1.58em;
+  width: 4.83em;
+}
+
+.three-eighth-note-spacer {
+  grid-column: span 2;
+}
+
+.b6, .bdiese6{
+  transform: translate(0, -7em);
+}
+
+.a6, .adiese6{
+  transform: translate(0, -6em);
+}
+
+.g5, .gdiese5{
+  transform: translate(0, -5em);
+}
+
+.f5, .fdiese5{
+  transform: translate(0, -4em);
+}
+
+.e5, .ediese5{
+  transform: translate(0, -3em);
+}
+
+.d5, .ddiese5{
+  transform: translate(0, -2em);
+}
+
+.c5, .cdiese5{
+  transform: translate(0, -1em);
+}
+
+.b5, .bdiese5{
+  transform: translate(0, 0);
+}
+
+.a5, .adiese5{
+  transform: translate(0, 1em);
+}
+
+.g4, .gdiese4{
+  transform: translate(0, 2em);
+}
+
+.f4, .fdiese4{
+  transform: translate(0, 3em);
+}
+
+.e4, .ediese4{
+  transform: translate(0, 4em);
+}
+
+.d4, .ddiese4{
+  transform: translate(0, 5em);
+}
+
+.c4, .cdiese4{
+  transform: translate(0, 6em);
+}
+
+.b4, .bdiese4{
+  transform: translate(0, 7em);
+}
+
+@supports (display: grid) {
+  .sheet-music {
+    display: grid;
+  }
+
+  .bar {
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+    width: auto;
+  }
+
+  .half-note {
+    margin: 0;
+  }
+
+  .half-note-spacer {
+    grid-column: span 4;
+    width: auto;
+  }
+
+  .quarter-note {
+    margin: 0;
+  }
+
+  .eighth-note {
+    margin: 0;
+  }
+
+  .three-eighth-note {
+    margin: 0;
+  }
+}
+
+@media (min-width: 0px) {
+  h1 {
+    font-size: 1.8em;
+    margin: 0.2em 0;
+  }
+
+  .bar {
+    margin: 1em 0;
+  }
+
+  @supports (display: grid) {
+    .sheet-music {
+      grid-template-columns: repeat(1, 1fr);
+    }
+  }
+}
+
+@media (min-width: 576px) {
+  h1 {
+    margin: 0.3em 0;
+  }
+
+  .bar {
+    margin: 2em 0;
+  }
+
+  @supports (display: grid) {
+    .sheet-music {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 2em;
+    margin: 0.6em 0;
+  }
+
+  .bar {
+    margin: 3em 0;
+  }
+
+  @supports (display: grid) {
+    .sheet-music {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+}
+
+@media (min-width: 992px) {
+  @supports (display: grid) {
+    .sheet-music {
+      grid-template-columns: repeat(4, 1fr);
+      max-width: 1200px;
+    }
+  }
+}
+
+@media (min-width: 1200px) {
+  @supports (display: grid) {
+    .sheet-music {
+      max-width: 1200px;
+    }
+  }
+}

@@ -1,0 +1,341 @@
+import { goBack, completeChallenge } from "./utils-challenge.js";
+
+import { getUserTeam, getOrCreateUniqueId, loadPage } from "./utils.js";
+
+import {
+  collection,
+  getDoc,
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDocs,
+} from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBlBc7SqkqKbvAHHNOnnV1CurxAHkwg9-E",
+  authDomain: "web-compass-df2fe.firebaseapp.com",
+  projectId: "web-compass-df2fe",
+  storageBucket: "web-compass-df2fe.appspot.com",
+  messagingSenderId: "834740391251",
+  appId: "1:834740391251:web:c862255165e426f39465a6",
+  measurementId: "G-6QHSKR9SSB",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Ensure db is defined
+
+let targetId; // Make targetId a global variable
+
+const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
+let offsetImgLeft = 0;
+let offsetImgTop = 0;
+let offsetImgLeftInPx = 0;
+let offsetImgTopInPx = 0;
+
+export function initializePageScripts(challengeId) {
+  if (challengeId) {
+    console.log(`Challenge ID: ${challengeId}`);
+    loadChallenge(challengeId); // Use the challengeId to load the data
+
+    document.getElementById("backButton").addEventListener("click", goBack);
+    document
+      .getElementById("start-challenge")
+      .addEventListener("click", startChallenge);
+  } else {
+    console.error("Challenge ID is missing.");
+  }
+}
+
+// Function to load challenge data from Firestore
+async function loadChallenge(challengeId) {
+  targetId = challengeId; // Use the passed challengeId instead of extracting from URL
+  console.log(targetId);
+
+  try {
+    const challengeDoc = await getDoc(doc(db, "challenges", targetId));
+
+    if (challengeDoc.exists()) {
+      console.log("Challenge exists");
+      const target = challengeDoc.data();
+      console.log(target);
+      document.getElementById("challenge").innerHTML = `
+        <strong>Challenge Point</strong>
+        <p>${target.question}</p>
+      `;
+    } else {
+      document.getElementById("challenge").innerHTML = "Challenge not found.";
+    }
+  } catch (error) {
+    console.error("Error loading challenge:", error);
+  }
+}
+
+// Global array to store image elements
+const images = [];
+
+// Function to create and display multiple images with circle overlays
+function createImages(imageUrls) {
+  const container = document.getElementById("image-container");
+  const numImages = imageUrls.length;
+
+  // Calculate the height for each image in vh
+  const imageHeight = (100 - numImages * 10) / numImages; // Each image takes up a fraction of the height based on the number of images
+  const imageHeightInPx = vhToPx(imageHeight);
+  const circleImgHeight = imageHeight + 10;
+  const circleImgHeightInPx = vhToPx(circleImgHeight);
+
+  imageUrls.forEach((url, index) => {
+    // Calculate dynamic positions using percentages (vw and vh) for responsiveness
+    let leftPos = 0; // Randomize position in vw (20vw margin)
+    let topPos = Math.random() * (100 - circleImgHeight); // Top position based on vh units
+
+    let circleCalculatedWidthInVw = 0;
+    let calculatedWidthInVw = 0;
+
+    // Create a circle image
+    const circleImg = document.createElement("img");
+    circleImg.src =
+      "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/sync.png?v=1728760728369"; // Replace with your circle image path
+
+    circleImg.onload = function () {
+      const circleAspectRatio =
+        circleImg.naturalWidth / circleImg.naturalHeight; // Calculate aspect ratio
+      const circleCalculatedWidthInPx = circleImgHeightInPx * circleAspectRatio; // Calculate width based on height and aspect ratio
+      circleCalculatedWidthInVw =
+        (circleCalculatedWidthInPx / window.innerWidth) * 100; // Convert width to vw for responsiveness
+
+      circleImg.alt = "Circle";
+      circleImg.classList.add("circle-image");
+      circleImg.style.position = "absolute";
+      circleImg.style.height = `${circleImgHeight}vh`; // Use vh for responsiveness
+      //circleImg.style.width = `${circleCalculatedWidthInVw}vw`; // Use vh for responsiveness
+      circleImg.style.pointerEvents = "none"; // Prevent interaction with the circle
+
+      // Add the circle to the container
+      container.appendChild(circleImg);
+
+      // Create the draggable image
+      const img = document.createElement("img");
+      img.src = url;
+      img.alt = `Image ${index + 1}`;
+      img.classList.add("movable-image");
+
+      img.onload = function () {
+        const aspectRatio = img.naturalWidth / img.naturalHeight;
+        const calculatedWidthInPx = imageHeightInPx * aspectRatio;
+        calculatedWidthInVw = (calculatedWidthInPx / window.innerWidth) * 100;
+
+        leftPos = Math.random() * (100 - circleCalculatedWidthInVw);
+
+        // Calculate the offset for the draggable image to center it within the circle
+        offsetImgLeft = circleCalculatedWidthInVw / 2 - calculatedWidthInVw / 2;
+        offsetImgTop = circleImgHeight / 2 - imageHeight / 2;
+        offsetImgLeftInPx = vwToPx(offsetImgLeft);
+        offsetImgTopInPx = vhToPx(offsetImgTop);
+
+        console.log(circleCalculatedWidthInVw);
+        console.log(calculatedWidthInVw);
+        console.log(offsetImgLeft);
+
+        // Set image dimensions and position
+        img.style.position = "absolute";
+        img.style.height = `${imageHeight}vh`; // Use vh for responsive height
+        //img.style.width = `${calculatedWidthInVw}vw`; // Use vh for responsive height
+        img.style.left = `${leftPos + offsetImgLeft}vw`; // Offset to keep image centered inside the circle
+        img.style.top = `${topPos + offsetImgTop}vh`; // Offset to keep image centered inside the circle
+        img.style.pointerEvents = "auto"; // Allow image to be draggable
+
+        circleImg.style.left = `${leftPos}vw`; // Position using vw
+        circleImg.style.top = `${topPos}vh`; // Position using vh
+
+        img.style.transform = `rotate(${Math.random() * 360}deg)`; // Random rotation for fun
+
+        // Make the image draggable
+        makeDraggable(img, circleImg); // Pass circle image as well
+
+        // Add the image to the container and the array
+        container.appendChild(img);
+      };
+    };
+  });
+}
+
+// Function to make an image draggable and rotatable (supports both mouse and touch)
+function makeDraggable(img, circleImg) {
+  let isDragging = false;
+  let startX, startY, initialX, initialY;
+
+  // Handle both mouse and touch start events
+  const startDrag = (e) => {
+    isDragging = true;
+    const clientX = e.type === "touchstart" ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+
+    startX = clientX;
+    startY = clientY;
+    initialX = img.offsetLeft;
+    initialY = img.offsetTop;
+
+    e.preventDefault(); // Prevent default behavior like scrolling
+  };
+
+  // Handle both mouse and touch move events
+  const onDrag = (e) => {
+    if (isDragging) {
+      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+
+      const dx = clientX - startX;
+      const dy = clientY - startY;
+      
+      let xInVw = pxToVw(initialX + dx);
+      let yInVh = pxToVh(initialY + dy);
+
+      img.style.left = `${xInVw}vw`;
+      img.style.top = `${yInVh}vh`;
+      circleImg.style.left = `${xInVw - offsetImgLeft}vw`; // Align circle image with the draggable image
+      circleImg.style.top = `${yInVh - offsetImgTop}vh`; // Align circle image with the draggable image
+    }
+  };
+
+  // Handle both mouse and touch end events
+  const endDrag = () => {
+    isDragging = false;
+  };
+
+  // Touch event listeners
+  img.addEventListener("touchstart", startDrag);
+  window.addEventListener("touchmove", onDrag);
+  window.addEventListener("touchend", endDrag);
+}
+
+// Function to get the current rotation in degrees
+function getRotationDegrees(elem) {
+  const style = window.getComputedStyle(elem);
+  const transform = style.transform;
+
+  if (transform && transform !== "none") {
+    const values = transform.match(/matrix.*\((.+)\)/)[1].split(",");
+    const a = parseFloat(values[0]);
+    const b = parseFloat(values[1]);
+    const angle = Math.round(Math.atan2(b, a) * (180 / Math.PI));
+    return angle < 0 ? angle + 360 : angle;
+  }
+  return 0;
+}
+
+let currentUserCount = 0;
+
+// Get the number of users in the current team from Firestore
+async function getTeamUserCount(teamName) {
+  const usersRef = collection(db, "users");
+  const querySnapshot = await getDocs(usersRef);
+  let userCount = 0;
+
+  querySnapshot.forEach((doc) => {
+    const userData = doc.data();
+    if (userData.team === teamName) {
+      userCount++; // Count users in the same team
+    }
+    if (userData.phoneId === phoneId) {
+      currentUserCount = userCount;
+    }
+  });
+
+  return userCount;
+}
+
+// Get overlay image URL based on user count from Firestore
+async function getImagesURL(userCount) {
+  const challengeDoc = await getDoc(doc(db, "challenges", targetId));
+
+  if (challengeDoc.exists()) {
+    let imagesURLs = null;
+    const userName = "user" + currentUserCount;
+    switch (userCount) {
+      case 2:
+        imagesURLs = getCurrentUserImagesURLs(
+          userName,
+          challengeDoc.data().users2
+        );
+        break;
+      case 3:
+        imagesURLs = getCurrentUserImagesURLs(
+          userName,
+          challengeDoc.data().users3
+        );
+        break;
+      case 4:
+        imagesURLs = getCurrentUserImagesURLs(
+          userName,
+          challengeDoc.data().users4
+        );
+        break;
+      case 5:
+        imagesURLs = getCurrentUserImagesURLs(
+          userName,
+          challengeDoc.data().users5
+        );
+        break;
+      case 6:
+        imagesURLs = getCurrentUserImagesURLs(
+          userName,
+          challengeDoc.data().users6
+        );
+        break;
+    }
+    console.log(imagesURLs);
+    if (imagesURLs) {
+      return imagesURLs; // Return corresponding image URL
+    }
+  }
+  return null; // Fallback if no image found
+}
+
+async function getCurrentUserImagesURLs(userName, challengeData) {
+  for (const [userCount, urls] of Object.entries(challengeData)) {
+    if (userCount === userName) {
+      return urls;
+    }
+  }
+}
+
+// Start the camera and display the overlay
+async function startChallenge() {
+  // Get the current team and count its members
+  const teamName = await getUserTeam(db, phoneId);
+  const userCount = await getTeamUserCount(teamName);
+
+  const imagesURL = await getImagesURL(userCount);
+  createImages(imagesURL);
+
+  const imageContainer = document.getElementById("image-container");
+
+  // Display the video element when the camera starts
+  imageContainer.style.display = "block"; // Make video visible
+}
+
+// Function to convert vh to pixels for responsiveness
+function vhToPx(vh) {
+  return (vh / 100) * window.innerHeight;
+}
+
+function vwToPx(vw) {
+  return (vw / 100) * window.innerWidth;
+}
+
+function pxToVh(px)
+{
+  return (px * 100) / window.innerHeight;
+}
+
+function pxToVw(px)
+{
+  return (px * 100) / window.innerWidth;
+}

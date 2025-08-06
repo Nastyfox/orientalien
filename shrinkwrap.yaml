@@ -1,0 +1,12 @@
+dependencies:
+  fireworks-js: 2.10.8
+packages:
+  /fireworks-js/2.10.8:
+    dev: false
+    resolution:
+      integrity: sha512-UZNxeJvRmQzLisN4iriWXqKojG9TDJqc0dPmkUw0/+AEQQ3w8z1Jx2YdFSiBGSVb/u4dPTQXU109GMVblzhfpg==
+registry: 'https://registry.npmjs.org/'
+shrinkwrapMinorVersion: 9
+shrinkwrapVersion: 3
+specifiers:
+  fireworks-js: ^2.10.8

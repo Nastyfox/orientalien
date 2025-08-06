@@ -1,0 +1,73 @@
+/* Icons Container */
+#icons-container {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between icons */
+}
+
+/* General styles for icons */
+.icon-container {
+  width: 50px; /* Adjust width as needed */
+  height: 50px; /* Adjust height as needed */
+}
+
+.walkie-talkie-icon {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.chrono-icon {
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+/* Modal styles */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  position: relative; /* Ensure the close button is positioned relative to this container */
+  background-color: white;
+  padding: 0;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  height: 90%;
+  max-height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 1001;
+}
+
+.modal iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}

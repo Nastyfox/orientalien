@@ -1,0 +1,618 @@
+// Load Tone.js dynamically
+function loadToneJS() {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.25/Tone.js"; // Ensure this is the correct version
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("Failed to load Tone.js"));
+    document.head.appendChild(script);
+  });
+}
+
+import { goBack, completeChallenge, loadChallenge, getTeamInfos } from "./utils-challenge.js";
+
+import {
+  collection,
+  getDoc,
+  getFirestore,
+  doc,
+  updateDoc,
+  arrayUnion,
+  getDocs,
+  query,
+  where,
+} from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
+
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "https://www.gstatic.com/firebasejs/9.14.0/firebase-storage.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+
+import { getUserTeam, getOrCreateUniqueId, loadPage } from "./utils.js";
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBlBc7SqkqKbvAHHNOnnV1CurxAHkwg9-E",
+  authDomain: "web-compass-df2fe.firebaseapp.com",
+  projectId: "web-compass-df2fe",
+  storageBucket: "web-compass-df2fe.appspot.com",
+  messagingSenderId: "834740391251",
+  appId: "1:834740391251:web:c862255165e426f39465a6",
+  measurementId: "G-6QHSKR9SSB",
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app); // Ensure db is defined
+
+let targetId; // Make targetId a global variable
+
+const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
+
+let ctx,
+  canvas,
+  synth = null;
+
+let isPlaying = false;
+
+let teamName = null;
+
+export async function initializePageScripts(challengeId) {
+  if (challengeId) {
+    console.log(`Challenge ID: ${challengeId}`);
+    targetId = await loadChallenge(challengeId); // Use the challengeId to load the data
+    teamName = await getUserTeam(db, phoneId);
+
+    const submitButton = document.getElementById("submitAnswerButton");
+    if (submitButton) {
+      submitButton.addEventListener("click", checkAnswer);
+    } else {
+      console.error("Submit button not found");
+    }
+    document.getElementById("backButton").addEventListener("click", goBack);
+
+    await loadToneJS(); // Load Tone.js
+
+    // Initialize Tone.js for sound playback
+    synth = new Tone.Synth().toDestination();
+
+    // Draw the music staff on the canvas
+    canvas = document.getElementById("staffCanvas");
+    ctx = canvas.getContext("2d");
+
+    // Draw the music staff on the canvas with visual markers
+    drawStaffWithMarkers();
+
+    // Load the correct sequence from Firebase and play it
+    const firebaseUserCorrectSequence = await getUserCorrectSequence();
+    userCorrectSequence = firebaseUserCorrectSequence.map((note) => ({ note }));
+    console.log(userCorrectSequence);
+    await playSequence(userCorrectSequence); // Play the correct sequence at the start
+
+    const firebaseSequence = await loadCorrectSequence();
+    correctSequence = firebaseSequence.map((note) => ({ note })); // Store the correct sequence for visual representation
+
+    // Now remove trailing rests (blank notes)
+    let lastNonRestIndex = -1;
+
+    // Find the last non-rest note in the sequence
+    for (let i = userCorrectSequence.length - 1; i >= 0; i--) {
+      if (userCorrectSequence[i].note !== " ") {
+        lastNonRestIndex = i;
+        break;
+      }
+    }
+
+    // Truncate the sequence to remove any trailing rests
+    userCorrectSequence = userCorrectSequence.slice(0, lastNonRestIndex + 1);
+
+    lastNonRestIndex = -1;
+    // Find the last non-rest note in the sequence
+    for (let i = correctSequence.length - 1; i >= 0; i--) {
+      if (correctSequence[i].note !== " ") {
+        lastNonRestIndex = i;
+        break;
+      }
+    }
+
+    // Truncate the sequence to remove any trailing rests
+    correctSequence = correctSequence.slice(0, lastNonRestIndex + 1);
+
+    // Play the user's note sequence
+    document
+      .getElementById("play-sequence")
+      .addEventListener("click", async () => {
+        await processEntireStaff();
+        // Start recording before playing the sequence
+        await playSequence(checkUserSequence);
+      });
+
+    // Play the correct sequence
+    document
+      .getElementById("correct-sequence")
+      .addEventListener("click", async () => {
+        await playSequence(userCorrectSequence);
+      });
+
+    // Validate the user's note sequence
+    document
+      .getElementById("submit-sequence")
+      .addEventListener("click", async () => {
+        await processEntireStaff(); // Process the staff to prepare the notes
+        verifySequence();
+        clearSheet();
+      });
+
+    // Set up event listener for the canvas click to input or remove notes
+    canvas.addEventListener("click", inputOrRemoveNote);
+
+    // Clear Sheet Button event listener
+    document
+      .getElementById("clearSheetButton")
+      .addEventListener("click", clearSheet);
+  } else {
+    console.error("Challenge ID is missing.");
+  }
+}
+
+// Function to check the user's answer
+async function checkAnswer() {
+  const userAnswer = document.getElementById("answer").value.trim();
+  const resultDiv = document.getElementById("result");
+
+  // Check if targetAnswer is defined
+  if (!window.targetAnswer) {
+    resultDiv.innerHTML =
+      "<span style='color: red;'>No challenge answer available.</span>";
+    return;
+  }
+
+  if (userAnswer.toLowerCase() === window.targetAnswer.toLowerCase()) {
+    resultDiv.innerHTML =
+      "<span style='color: green;'>Correct! Well done.</span>";
+
+    // Clear currentChallenge and add to completedChallenges
+    await completeChallenge(targetId);
+  } else {
+    resultDiv.innerHTML =
+      "<span style='color: red;'>Incorrect. Try again!</span>";
+  }
+}
+
+// Define initial size variables
+let baseWidth = 600; // This is the reference width for scaling
+let baseHeight = 200; // The reference height for the canvas
+
+// Define notes and pitch positions on the staff
+const solfegeNotes = ["Do", "Ré", "Mi", "Fa", "Sol", "La", "Si"];
+
+// Define note positions on the staff for solfège notes
+const solfegePositions = {
+  Do: 170, // On the bottom line
+  Ré: 160, // Between bottom line and second line
+  Mi: 150, // On second line
+  Fa: 140, // Between second and third line
+  Sol: 130, // On third line
+  La: 120, // Between third and fourth line
+  Si: 110, // On fourth line
+};
+
+// Map solfège notes to musical notes (with octave)
+const solfègeToNote = {
+  Do: "C4",
+  Ré: "D4",
+  Mi: "E4",
+  Fa: "F4",
+  Sol: "G4",
+  La: "A4",
+  Si: "B4",
+};
+
+const horizontalThreshold = 30; // Set a threshold for horizontal alignment
+const markerInterval = horizontalThreshold; // Set marker spacing based on threshold
+
+let userSequence = [];
+let checkUserSequence = [];
+let correctSequence = [];
+
+// Load the correct sequence from Firebase
+async function loadCorrectSequence() {
+  const challengeDoc = await getDoc(doc(db, "challenges", targetId));
+  if (challengeDoc.exists) {
+    return challengeDoc.data().correctSequence; // Example: ["C", "E", "G"]
+  }
+  return [];
+}
+
+// Define staffBaseY responsively, for example, starting at 10% from the top of the canvas
+let staffBaseY = 0; // Adjust this percentage as needed
+
+// Define the vertical spacing between the lines on the staff
+let lineSpacing = 0; // 3% of the canvas height for spacing between lines
+const staffHeightPercentage = 0.2; // Height of the staff relative to the canvas height
+const staffTopOffset = 0.1; // Offset from the top of the canvas
+const linesCount = 5; // Number of lines in the staff
+
+let notePositions = null;
+
+// Function to input a note or remove an existing note
+function inputOrRemoveNote(event) {
+  const rect = canvas.getBoundingClientRect();
+  const devicePixelRatio = window.devicePixelRatio || 1; // Adjust for device pixel ratio
+  let x, y;
+
+  // Determine if the event is a touch event or a mouse click
+  if (event.touches && event.touches.length > 0) {
+    x =
+      ((event.touches[0].clientX - rect.left) * devicePixelRatio * baseWidth) /
+      rect.width;
+    y =
+      ((event.touches[0].clientY - rect.top) * devicePixelRatio * baseHeight) /
+      rect.height;
+  } else {
+    x = ((event.clientX - rect.left) * baseWidth) / rect.width;
+    y = ((event.clientY - rect.top) * baseHeight) / rect.height;
+  }
+
+  // Snap the x-coordinate to the nearest marker (based on marker positions)
+  let closestMarker = null;
+  let markerDistance = Infinity;
+  for (const marker of markers) {
+    const dist = Math.abs(x - marker);
+    if (dist < markerDistance) {
+      markerDistance = dist;
+      closestMarker = marker;
+    }
+  }
+
+  if (closestMarker !== null) {
+    x = closestMarker; // Normalize to baseWidth
+  }
+
+  // Get the correct vertical position for the note based on the staff
+  let closestNote = null;
+  let closestDistance = Infinity;
+
+  // Map the notes to specific Y positions (adjust to fit your staff lines)
+  notePositions = {
+    Do: staffBaseY + 5 * lineSpacing, // Lowest note
+    Ré: staffBaseY + 4.5 * lineSpacing, // Between lines
+    Mi: staffBaseY + 4 * lineSpacing, // On a line
+    Fa: staffBaseY + 3.5 * lineSpacing, // Between lines
+    Sol: staffBaseY + 3 * lineSpacing, // On a line
+    La: staffBaseY + 2.5 * lineSpacing, // Between lines
+    Si: staffBaseY + 2 * lineSpacing, // On a line
+  };
+
+  // Find the closest note to the clicked position
+  for (const note in notePositions) {
+    console.log(y + " " + notePositions[note]);
+    const distance = Math.abs(y - notePositions[note]);
+    if (distance < closestDistance) {
+      closestDistance = distance;
+      closestNote = note;
+    }
+  }
+
+  // Check if a note already exists at this location (within threshold)
+  const clickedNoteIndex = userSequence.findIndex(
+    (noteObj) =>
+      Math.abs(noteObj.x - x) < 10 &&
+      Math.abs(notePositions[noteObj.note] - notePositions[closestNote]) < 10
+  );
+
+  if (clickedNoteIndex !== -1) {
+    // Remove the clicked note if it exists
+    userSequence.splice(clickedNoteIndex, 1);
+    console.log(`Note removed:`, userSequence);
+    drawStaffWithMarkers(); // Redraw the staff without the removed note
+    drawUserNotes(); // Redraw remaining notes
+  } else {
+    // Otherwise, input a new note
+    if (closestNote) {
+      // Check if there's any existing note within the horizontal threshold
+      const nearbyNote = userSequence.find(
+        (noteObj) => Math.abs(noteObj.x - x) < horizontalThreshold
+      );
+
+      if (nearbyNote) {
+        console.log("Note is too close to an existing note. Not added.");
+        return; // Prevent adding the new note if it's too close
+      }
+
+      userSequence.push({ note: closestNote, x });
+      console.log("User sequence (before sorting):", userSequence);
+      sortUserSequence(); // Sort the user sequence by x position
+      console.log("User sequence (after sorting):", userSequence);
+      drawUserNotes(); // Redraw the notes on the staff
+    }
+  }
+}
+
+// Function to draw the user's input notes as circles
+function drawUserNotes() {
+  for (const note of userSequence) {
+    const x = (note.x * canvas.width) / baseWidth; // Scale x position to the canvas size
+    const y = notePositions[note.note]; // Get the y position based on the note
+    const noteRadius = lineSpacing / 2; // Set the note size as half the line spacing
+
+    ctx.beginPath();
+    ctx.arc(x, y, noteRadius, 0, 2 * Math.PI); // Draw the note with the new size
+    ctx.fillStyle = "black";
+    ctx.fill();
+  }
+}
+
+// Function to sort the userSequence by the horizontal position (x value)
+function sortUserSequence() {
+  userSequence.sort((a, b) => a.x - b.x);
+}
+
+async function processEntireStaff() {
+  const newSequence = []; // Create a new sequence to hold the updated notes and rests
+
+  // Iterate over each marker position
+  for (let i = 0; i < markers.length; i++) {
+    // Scale marker position to match the baseWidth
+    const scaledMarkerX = (markers[i] * baseWidth) / canvas.width;
+
+    // Check if there is a note at this marker
+    const noteObj = getNoteAtMarker(scaledMarkerX); // Use the scaled marker position
+
+    if (noteObj) {
+      // If a note exists, push it to the new sequence (with its original x value)
+      newSequence.push(noteObj);
+    } else {
+      // If no note exists at this marker, add a rest (represented as " ")
+      newSequence.push({ note: " ", x: scaledMarkerX });
+    }
+  }
+
+  // Now remove trailing rests (blank notes)
+  let lastNonRestIndex = -1;
+
+  // Find the last non-rest note in the sequence
+  for (let i = newSequence.length - 1; i >= 0; i--) {
+    if (newSequence[i].note !== " ") {
+      lastNonRestIndex = i;
+      break;
+    }
+  }
+
+  console.log("New sequence before trimming:", newSequence);
+  console.log(lastNonRestIndex);
+
+  // Truncate the sequence to remove any trailing rests
+  const tempUserSequence = newSequence.slice(0, lastNonRestIndex + 1);
+  checkUserSequence = tempUserSequence.map(({ note }) => ({ note }));
+  console.log("Updated user sequence:", checkUserSequence);
+}
+
+function getNoteAtMarker(markerX, sequence) {
+  // Scale markerX to match the baseWidth
+  const scaledMarkerX = (markerX * baseWidth) / canvas.width;
+  console.log(userSequence);
+
+  // Find the note in the user sequence that matches this marker's X position
+  return userSequence.find((noteObj) => {
+    // Scale the note's x-coordinate to the current canvas width
+    const scaledNoteX = (noteObj.x * canvas.width) / baseWidth;
+
+    console.log(Math.abs(scaledNoteX - markerX) < horizontalThreshold);
+    // Check if the note is close to the marker's X position within the threshold
+    return Math.abs(scaledNoteX - markerX) < horizontalThreshold;
+  });
+}
+
+// Function to play the user's note sequence and record simultaneously
+async function playSequence(sequence) {
+  console.log(sequence);
+
+  if (isPlaying) {
+    console.log("Sequence is already playing. Please wait.");
+    return; // Exit if the sequence is already playing
+  }
+
+  isPlaying = true; // Set the flag to indicate that a sequence is playing
+
+  // Play each note in the sequence
+  for (let i = 0; i < sequence.length; i++) {
+    const noteObj = sequence[i];
+
+    if (noteObj !== " ") {
+      const note = solfègeToNote[noteObj.note]; // Convert solfège to note
+      synth.triggerAttackRelease(note, "8n"); // Play the note using Tone.js
+    }
+
+    // Wait for a shorter duration to ensure we don't miss the last note
+    if (i < sequence.length - 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500)); // Adjust this wait time as necessary
+    }
+  }
+
+  isPlaying = false; // Reset the flag when the sequence is done
+}
+
+const markers = []; // Store marker positions dynamically
+
+function drawStaffWithMarkers() {
+  // Clear the canvas to remove previous drawings
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  console.log(staffBaseY);
+
+  // Define margins (as percentages of canvas dimensions)
+  const horizontalMargin = canvas.width * 0.05; // 5% margin on left and right
+  const topMargin = canvas.height * 0.1; // 10% margin on top
+  const bottomMargin = canvas.height * 0.25; // 20% margin on bottom for extra space
+
+  // Calculate the staff base Y position with the top margin
+  staffBaseY = topMargin;
+
+  // Define dynamic line spacing based on canvas height to ensure proper proportions
+  lineSpacing = (canvas.height - topMargin - bottomMargin) / (linesCount - 1); // Adjust the value to scale appropriately
+
+  // Draw the five staff lines
+  for (let i = 0; i < linesCount; i++) {
+    ctx.beginPath();
+    ctx.moveTo(horizontalMargin, staffBaseY + i * lineSpacing); // Position based on base Y and line index
+    ctx.lineTo(canvas.width - horizontalMargin, staffBaseY + i * lineSpacing); // Draw to the right edge of the canvas
+    ctx.stroke();
+  }
+
+  const totalMarkers = 8; // Define the total number of markers
+  const usableWidth = canvas.width - 2 * horizontalMargin; // Width minus the margins
+  const markerSpacing = usableWidth / (totalMarkers - 1); // Space between markers
+
+  // Reset the markers array before adding new marker positions
+  markers.length = 0;
+
+  // Draw the markers and store their positions
+  for (let i = 0; i < totalMarkers; i++) {
+    const x = horizontalMargin + i * markerSpacing; // Adjust marker position for the margin
+    ctx.beginPath();
+    ctx.moveTo(x, staffBaseY); // Start the marker line from the top of the staff
+    ctx.lineTo(x, staffBaseY + (linesCount - 1) * lineSpacing); // Draw the marker line down to the last staff line
+    ctx.stroke();
+
+    // Store the marker positions
+    markers.push(x);
+  }
+}
+
+// Function to clear the music sheet
+function clearSheet() {
+  userSequence = []; // Clear the sequence
+  drawStaffWithMarkers(); // Redraw the empty staff
+  console.log("Sheet cleared");
+}
+
+let currentUserCount = 0;
+let userCorrectSequence = null;
+let userCount = 0;
+
+async function getInfosForGame() {
+  const teamData = await getTeamInfos(teamName);
+  userCount = teamData[0];
+  currentUserCount = teamData[1];
+}
+
+// Get overlay image URL based on user count from Firestore
+async function getUserCorrectSequence() {
+  const challengeDoc = await getDoc(doc(db, "challenges", targetId));
+
+  // Get the current team and count its members
+  teamName = await getUserTeam(db, phoneId);
+  
+  await getInfosForGame();
+  //userCount = await getTeamUserCount(teamName);
+
+  if (challengeDoc.exists()) {
+    const userName = "user" + currentUserCount;
+    let correctSequences = null;
+    console.log(userCount);
+    switch (userCount) {
+      case 1:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users1
+        );
+        break;
+      case 2:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users2
+        );
+        break;
+      case 3:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users3
+        );
+        break;
+      case 4:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users4
+        );
+        break;
+      case 5:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users5
+        );
+        break;
+      case 6:
+        correctSequences = getCurrentUserSequence(
+          userName,
+          challengeDoc.data().users6
+        );
+        break;
+    }
+    if (correctSequences) {
+      return correctSequences; // Return corresponding image URL
+    }
+  }
+  return null; // Fallback if no image found
+}
+
+async function getCurrentUserSequence(userName, challengeData) {
+  for (const [userCount, sequence] of Object.entries(challengeData)) {
+    if (userCount === userName) {
+      return sequence;
+    }
+  }
+}
+
+function verifySequence() {
+  const resultDiv = document.getElementById("result");
+  let checkUser = true;
+  let checkGlobal = true;
+
+  console.log(checkUserSequence);
+  console.log(userCorrectSequence);
+  console.log(correctSequence);
+
+  if (userCorrectSequence.length !== checkUserSequence.length) {
+    checkUser = false;
+  }
+
+  if (correctSequence.length !== checkUserSequence.length) {
+    checkGlobal = false;
+  }
+
+  if (checkUser) {
+    // Check each note in the arrays
+    for (let i = 0; i < checkUserSequence.length; i++) {
+      if (checkUserSequence[i].note !== userCorrectSequence[i].note) {
+        checkUser = false;
+      }
+    }
+  }
+
+  if (checkGlobal) {
+    // Check each note in the arrays
+    for (let i = 0; i < checkUserSequence.length; i++) {
+      if (checkUserSequence[i].note !== correctSequence[i].note) {
+        checkGlobal = false;
+      }
+    }
+  }
+
+  if (checkUser) {
+    resultDiv.innerHTML =
+      "<span style='color: orange;'>La séquence n'est pas tout à fait la bonne</span>";
+  }
+  if (checkGlobal) {
+    resultDiv.innerHTML =
+      "<span style='color: green;'>La séquence est bonne</span>";
+  }
+  if (!checkUser && !checkGlobal) {
+    resultDiv.innerHTML =
+      "<span style='color: red;'>La séquence n'est pas bonne</span>";
+  }
+}

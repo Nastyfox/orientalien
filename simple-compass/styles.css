@@ -1,0 +1,60 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.compass {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border: 5px solid #333;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.needle {
+    position: absolute;
+    width: 2px;
+    height: 100px;
+    background: red;
+    top: 50%;
+    left: 50%;
+    transform-origin: top center; /* Rotate around the top center */
+    transform: translateX(-50%) translateY(-100%); /* Center the needle horizontally and position it correctly */
+}
+
+.direction {
+    position: absolute;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+#north {
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#east {
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+}
+
+#south {
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#west {
+    top: 50%;
+    left: 10px;
+    transform: translateY(-50%);
+}

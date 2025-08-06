@@ -1,0 +1,90 @@
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.challenge-container {
+  width: 400px;
+  text-align: center;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+video {
+  display: none; /* Hide the video stream */
+}
+
+#dark-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: black;
+  opacity: 100; /* Start fully transparent */
+  transition: opacity 0.5s ease; /* Smooth transition for opacity */
+  z-index: 1;
+  pointer-events: auto;
+}
+
+#camera {
+  display: none; /* Hide the camera video until started */
+}
+
+#brightnessOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: black;
+  pointer-events: none; /* So it doesn't block clicks */
+  opacity: 1; /* Fully dark initially */
+  z-index: 1000;
+}
+
+#brightness-value {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 5px;
+  font-size: 18px;
+}
+
+.torch-icon {
+  width: 50px; /* Width of the torch icon */
+  height: 50px; /* Height of the torch icon */
+  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/torchlight.png?v=1729544131488"); /* Replace with the path to your torch icon */
+  background-size: cover; /* Cover the entire div with the icon */
+  position: absolute;
+  opacity: 0; /* Start with an opacity of 0 for fade-in effect */
+  transition: opacity 0.5s; /* Transition for the fade effect */
+  z-index: 10;
+}
+
+#backButton {
+  position: relative;
+  z-index: 2;
+}
+

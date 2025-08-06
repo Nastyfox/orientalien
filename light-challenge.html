@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, user-scalable=no"
+    />
+    <title>Low Light Detection</title>
+    <link rel="stylesheet" href="light-challenge.css" />
+    <link rel="stylesheet" href="challenge.css" />
+  </head>
+  <body>
+    <div class="challenge-page">
+      <div id="brightnessDisplay" style="position: fixed; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.5); color: white; padding: 5px; font-size: 16px; z-index: 1000;">
+  Brightness: 0
+</div>
+      <div class="challenge-container">
+        <div id="challenge"></div>
+        <input type="text" id="answer" placeholder="Ta réponse..." />
+        <button id="submitAnswerButton">Répondre</button>
+        <button id="hintButton">Afficher les indices</button>
+        <button id="backButton">Retour à la carte</button>
+        <!-- New button -->
+      </div>
+      <div id="hintModal" class="modal-hints">
+        <div id="hintsContainer" class="modal-content-hints">
+          <span id="closeHints" class="close-hints">&times;</span>
+          <div id="hintsTitle">Indices</div>
+          <div id="hintsContent"></div>
+          <div id="hintCost"></div>
+          <button id="newHint">Nouvel indice</button>
+        </div>
+      </div>
+    </div>
+    <video id="camera" muted autoplay playsinline></video>
+    <canvas id="lightCanvas" style="display: none"></canvas>
+    <div id="dark-screen"></div>
+    
+        <!-- Icons Container -->
+    <div id="icons-container">
+      <!-- Notes Icon -->
+      <div id="notesIcon" class="icon-container">
+        <img
+          src="https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/pencil.png?v=1751371521152"
+          alt="Notes"
+          class="notes-icon"
+        />
+      </div>
+    </div>
+    <!-- Notes Modal -->
+    <div id="notesModal" class="modal hidden">
+      <div class="modal-content notes">
+        <span class="close">&times;</span>
+        <iframe src="notes.html" id="notesIframe"></iframe>
+        <!-- Walkie-Talkie content goes here -->
+      </div>
+    </div>
+
+    <!-- Fireworks container -->
+    <div class="fireworks-container" id="fireworks-container"></div>
+
+    <script src="light-challenge.js"></script>
+  </body>
+</html>

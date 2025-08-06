@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Web App</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="content"></div>
+    <script>
+      function loadPage(page) {
+        if (page === "join-team") {
+          fetch("join-team.html")
+            .then((response) => response.text())
+            .then((data) => {
+              document.getElementById("content").innerHTML = data;
+              // Manually initialize scripts
+              initializePageScripts();
+            })
+            .catch((error) => console.error("Error loading page:", error));
+        }
+      }
+
+      function initializePageScripts() {
+        // Find and execute scripts in the dynamically loaded content
+        const scripts = document.querySelectorAll("#content script");
+        scripts.forEach((script) => {
+          if (script.type === "module") {
+            // For module scripts, we need to use src attribute
+            const newScript = document.createElement("script");
+            newScript.type = "module";
+            newScript.src = script.src;
+            document.body.appendChild(newScript);
+          } else {
+            // For non-module scripts, copy the text content
+            const newScript = document.createElement("script");
+            newScript.textContent = script.textContent;
+            document.body.appendChild(newScript);
+          }
+        });
+      }
+
+      // Load default page
+      loadPage("join-team");
+    </script>
+    <!-- Include UUID library from CDN -->
+    <script src="utils.js"></script>
+  </body>
+</html>

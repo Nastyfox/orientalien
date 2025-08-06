@@ -1,0 +1,62 @@
+async function initMazes() {
+  console.log("Maze added");
+  // Update Firebase with the new ball state for the team
+  const challengeDoc = doc(db, "challenges", targetId);
+
+  await updateDoc(challengeDoc, {
+    [`users2.user1.maze.walls`]: wallsUsers2,
+    [`users2.user1.maze.exits`]: exitsUser1,
+    [`users2.user1.maze.gates`]: gatesUser1,
+    [`users2.user2.maze.walls`]: wallsUsers2,
+    [`users2.user2.maze.exits`]: exitsUser2,
+    [`users2.user2.maze.gates`]: gatesUser2,
+    // Store exit data under teamName
+  });
+}
+
+const gatesUser1 = [
+  {
+    x: 0.375,
+    y: 0.375,
+    open: false,
+    code: "1234"
+  },
+  {
+    x: 0.375,
+    y: 0.625,
+    open: false,
+    code: "5678"
+  },
+];
+const gatesUser2 = [
+  {
+    x: 0.625,
+    y: 0.625,
+    open: false,
+    code: "1234"
+  },
+  {
+    x: 0.625,
+    y: 0.375,
+    open: false,
+    code: "5678"
+  },
+];
+
+const wallsUsers2 = [
+  { x: [0,1], y: [0,0] },
+  { x: [0,0], y: [0,1] },
+  { x: [1,1], y: [0,1] },
+  { x: [0,1], y: [1,1] },
+];
+
+const exitsUser1 = [
+  { x: 0.05, y: 0.05, correct: true }, // Exit 1
+  { x: 0.85, y: 0.95, correct: false }, // Exit 2
+];
+
+const exitsUser2 = [
+  { x: 0.85, y: 0.05, correct: false }, // Exit 1
+  { x: 0.05, y: 0.95, correct: true }, // Exit 2
+];
+
