@@ -143,38 +143,38 @@ let exitsWidth = null;
 let exitsHeight = null;
 
 const horizontalColorMapDoors = {
-  2605: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_bleu_horizontal.png?v=1743191826120",
-  5605: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_bordeaux_horizontal.png?v=1743191831540",
-  2005: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_dore_horizontal.png?v=1743191835640",
-  5026: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_rose_horizontal.png?v=1743191840490",
-  5050: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_turquoise_horizontal.png?v=1743191844596",
-  6226: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_vert_horizontal.png?v=1743191848616",
+  2605: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_bleu_horizontal.png?alt=media&token=ba828929-25fc-4a23-8e4f-ae400dc6ef6b",
+  5605: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_bordeaux_horizontal.png?alt=media&token=a079993c-237b-466a-9d96-e9def2f9beee",
+  2005: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_dore_horizontal.png?alt=media&token=806bc6b6-fa34-402e-a037-9708c4ebdcea",
+  5026: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_rose_horizontal.png?alt=media&token=004d937a-c427-4560-a1a6-317f4e03a841",
+  5050: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_turquoise_horizontal.png?alt=media&token=8357f56e-6d58-46f0-9786-7860af08f186",
+  6226: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_vert_horizontal.png?alt=media&token=1f8875f3-869d-4ebc-8327-23fd0c72c038",
 };
 
 const verticalColorMapDoors = {
-  2605: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_bleu_vertical.png?v=1743191829404",
-  5605: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_bordeaux_vertical.png?v=1743191833726",
-  2005: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_dore_vertical.png?v=1743191837553",
-  5026: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_rose_vertical.png?v=1743191842592",
-  5050: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_turquoise_vertical.png?v=1743191846657",
-  6226: "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/door_vert_vertical.png?v=1743191850315",
+  2605: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_bleu_vertical.png?alt=media&token=604fcf97-196d-41a5-83ff-00c6f580b1d5",
+  5605: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_bordeaux_vertical.png?alt=media&token=3cd27c11-cb28-42ea-9c4c-b835fc9b4496",
+  2005: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_dore_vertical.png?alt=media&token=31c1aa93-3df9-4f76-950a-8d95c5dd930e",
+  5026: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_rose_vertical.png?alt=media&token=e7234442-1f33-4f5e-9f60-1a6cf2e7481f",
+  5050: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_turquoise_vertical.png?alt=media&token=50e13d67-4c59-47f4-967a-71ccf7450ba2",
+  6226: "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fdoor_vert_vertical.png?alt=media&token=83a8ec2e-ca66-4011-b93d-aa2dee3df063",
 };
 
 const colorMapExits = {
   "30D5C8":
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_turquoise.png?v=1742418198504",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_turquoise.png?alt=media&token=0ee6bf1b-efd4-47b7-8ced-44abb4a4f17a",
   E64C93:
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_rose.png?v=1742418195074",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_rose.png?alt=media&token=8e18fdc2-7f4e-4e48-b90d-92a52fcf2d01",
   "105DC2":
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_bleu.png?v=1742418190815",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_bleu.png?alt=media&token=3851f603-ca73-4711-98a9-b2146daa70d3",
   D6940F:
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_dore.png?v=1742418193600",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_dore.png?alt=media&token=613752d3-0636-47b6-a380-3e7f235d2efe",
   AD1D3F:
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_bordeaux.png?v=1742418191885",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_bordeaux.png?alt=media&token=c0c707ad-d5ec-4389-a7e3-d37bafe9d1e5",
   "14CC6A":
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit_vert.png?v=1742418199731",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit_vert.png?alt=media&token=ca8901b9-c3e3-4baf-b02c-afb0c9363ae0",
   "000000":
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit.png?v=1740506128436",
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit.png?alt=media&token=59dfe4a6-a412-4d3c-b4d2-19b93fc13c21",
 };
 
 let referenceCanvasWidth;
@@ -780,16 +780,16 @@ async function getInfosForGame() {
   // Load SVGs
   wallImages.push(
     await loadImage(
-      "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/wall_horizontal.png?v=1743241568950"
+      "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fwall_horizontal.png?alt=media&token=c7cf2e56-a43f-4b78-9037-15ac045ec5b4"
     )
   );
   wallImages.push(
     await loadImage(
-      "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/wall_vertical.png?v=1743241571341"
+      "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fwall_vertical.png?alt=media&token=443b3a77-4723-43b1-b51d-a42c4040a97c"
     )
   );
   normalExitImage = await loadImage(
-    "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/exit.png?v=1740506128436"
+    "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fexit.png?alt=media&token=59dfe4a6-a412-4d3c-b4d2-19b93fc13c21"
   );
 }
 

@@ -71,11 +71,11 @@ export function createFireworks(fireworksContainer) {
     sound: {
       enabled: true,
       files: [
-        "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/firework1.mp3?v=1736891780696",
-        "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/firework2.mp3?v=1736891782212",
-        "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/firework3.mp3?v=1736891784727",
-        "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/firework4.mp3?v=1736891787215",
-        "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/firework5.mp3?v=1736891790022",
+        "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/sounds%2Ffirework1.mp3?alt=media&token=927f93b8-408e-4abd-b07d-682a6d981eb7",
+        "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/sounds%2Ffirework2.mp3?alt=media&token=03e5ce5c-333f-406e-b513-ae79b9999534",
+        "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/sounds%2Ffirework3.mp3?alt=media&token=4cce1a73-4c15-4ac3-89f5-4391577b64ed",
+        "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/sounds%2Ffirework4.mp3?alt=media&token=6e3ca566-a79f-4024-8954-62faa1c39a55",
+        "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/sounds%2Ffirework5.mp3?alt=media&token=dd84ac29-37cf-4d60-b0bb-c24063ff7c27",
       ],
     },
   });

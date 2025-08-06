@@ -75,7 +75,7 @@ video {
 .torch-icon {
   width: 50px; /* Width of the torch icon */
   height: 50px; /* Height of the torch icon */
-  background-image: url("https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/torchlight.png?v=1729544131488"); /* Replace with the path to your torch icon */
+  background-image: url("https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Ftorchlight.png?alt=media&token=1c4f78a9-afd9-4f5e-bd98-919ba885720b"); /* Replace with the path to your torch icon */
   background-size: cover; /* Cover the entire div with the icon */
   position: absolute;
   opacity: 0; /* Start with an opacity of 0 for fade-in effect */

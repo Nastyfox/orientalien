@@ -453,7 +453,7 @@ async function loadTeamChallenges() {
             title: `Current Challenge: ${challenge.name}`,
             icon: L.icon({
               iconUrl:
-                "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/marker_current.png?v=1728336582915",
+                "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fmarker_current.png?alt=media&token=dc49e021-d228-46ae-99be-0ad8388a3842",
               iconSize: [50, 50],
             }),
           }).addTo(map);
@@ -518,7 +518,7 @@ async function loadTeamChallenges() {
             title: `Completed Challenge: ${challenge.name}`,
             icon: L.icon({
               iconUrl:
-                "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/marker_completed.png?v=1728336588268",
+                "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Fmarker_completed.png?alt=media&token=34e7d8e2-7d50-4dfe-991f-59d036536a4e",
               iconSize: [50, 50],
             }),
           }).addTo(map);

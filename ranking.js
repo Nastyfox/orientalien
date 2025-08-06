@@ -54,12 +54,12 @@ const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
 loadTeams();
 
 let rankingImages = [
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/1.png?v=1739807442392",
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/2.png?v=1739807439638",
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/3.png?v=1739807436206",
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/4.png?v=1739806983715",
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/5.png?v=1739806985719",
-  "https://cdn.glitch.global/7ce7c2ee-b72f-4eeb-bae8-ea194d64bf0c/6.png?v=1739806987727",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F1.png?alt=media&token=aa3b5ac3-0182-4c67-b4b4-06fde649bf7e",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F2.png?alt=media&token=1e06d425-ebe4-4820-9961-03c97574e941",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F3.png?alt=media&token=c2a7e6f7-1536-4fc0-9257-54c20f1c14b7",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F4.png?alt=media&token=82f602aa-af13-482e-909f-048f775b3934",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F5.png?alt=media&token=82521bc0-db98-42a9-9748-50b828ae805f",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F6.png?alt=media&token=fe1bb26c-9730-413d-9684-976c63e5b907",
 ];
 
 let bestTime = null;
