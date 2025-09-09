@@ -260,6 +260,8 @@ function updateTorchDetectionState(torchDetected) {
       // Maintenant on peut enlever l'écran noir
       darkScreen.style.opacity = 0;
       darkScreen.style.pointerEvents = "none";
+	  document.body.style.overflow = '';
+	  document.documentElement.style.overflow = '';
       clearInterval(torchInterval);
       lastScreenState = 0;
       
@@ -390,6 +392,8 @@ function lockOpacityUntilChange() {
         // Restaurer l'écran sombre
         darkScreen.style.opacity = 1;
         darkScreen.style.pointerEvents = "auto";
+		document.body.style.overflow = 'hidden';
+		document.documentElement.style.overflow = 'hidden';
         lastScreenState = 1;
         
         if (!torchInterval) {
