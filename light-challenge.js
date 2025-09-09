@@ -202,7 +202,7 @@ async function enhancedLightCheck(video) {
     const lightResult = await lightDetector.detectLightLevel(video, 6, 30);
     
     const actualBrightness = lightResult.estimatedActualBrightness;
-    const brightnessThreshold = 120; // Adjusted threshold
+    const brightnessThreshold = 250; // Adjusted threshold
     
     // Display enhanced brightness info
     document.getElementById("brightnessDisplay").textContent = 
