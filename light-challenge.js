@@ -83,38 +83,60 @@ async function startBrightnessDisplay() {
   }
 }
 
-// Simple brightness calculation
-function calculateBrightness() {
+// Enhanced brightness analysis with histogram
+function analyzeImageHistogram(context, canvas, video) {
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
-  let totalBrightness = 0;
-  const pixelCount = canvas.width * canvas.height;
-
+  
+  // Create histogram
+  const histogram = new Array(256).fill(0);
+  let totalPixels = 0;
+  
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i];
     const g = data[i + 1];
     const b = data[i + 2];
-    const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    totalBrightness += brightness;
-  }
-
-  return totalBrightness / pixelCount;
-}
-
-// Continuous brightness display
-function displayBrightness() {
-  if (video && canvas && context) {
-    const brightness = calculateBrightness();
-    
-    // Display only the brightness value
-    document.getElementById("brightnessDisplay").textContent = 
-      `Luminosité: ${Math.round(brightness)}`;
-    
-    // Log to console for debugging
-    console.log(`Brightness: ${brightness.toFixed(2)}`);
+    const brightness = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+    histogram[brightness]++;
+    totalPixels++;
   }
   
-  // Continue updating every 100ms
-  setTimeout(displayBrightness, 100);
+  // Analyze histogram characteristics
+  const brightPixels = histogram.slice(200, 256).reduce((a, b) => a + b, 0);
+  const brightRatio = (brightPixels / totalPixels) * 100;
+  
+  // Find peak brightness
+  const maxCount = Math.max(...histogram);
+  const peakBrightness = histogram.indexOf(maxCount);
+  
+  const avgBrightness = data.reduce((sum, val, i) => {
+    if (i % 4 === 3) return sum; // Skip alpha
+    return sum + val;
+  }, 0) / (data.length * 3 / 4);
+  
+  return {
+    avgBrightness: avgBrightness,
+    brightPixelRatio: brightRatio,
+    peakBrightness: peakBrightness,
+    histogram: histogram
+  };
+}
+
+function displayAdvancedBrightness() {
+  if (video && canvas && context) {
+    const analysis = analyzeImageHistogram(context, canvas, video);
+    
+    document.getElementById("brightnessDisplay").textContent = 
+      `Luminosité: ${Math.round(analysis.avgBrightness)} | Pixels brillants: ${analysis.brightPixelRatio.toFixed(1)}% | Pic: ${analysis.peakBrightness}`;
+    
+    console.log('Full analysis:', analysis);
+    
+    // A torch will create high bright pixel ratio even with auto-exposure
+    if (analysis.brightPixelRatio > 15) {
+      console.log('Possible torch detected - high bright pixel ratio');
+    }
+  }
+  
+  setTimeout(displayAdvancedBrightness, 100);
 }
