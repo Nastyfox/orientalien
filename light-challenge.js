@@ -81,28 +81,26 @@ let lockOpacity = false; // To lock the opacity when a flashlight is detected
 let lockTimer = null; // Timer to reset the lock after a period
 let brightnessChangeThreshold = 80; // Detect significant changes in brightness
 
-// Rapid sampling light detector class
-class RapidSamplingLightDetector {
+class ImprovedLightDetector {
   constructor(context, canvas) {
     this.context = context;
     this.canvas = canvas;
+    this.baselineBrightness = null;
+    this.baselineSamples = [];
+    this.stabilizationCount = 0;
   }
 
-  async detectLightLevel(video, sampleCount = 8, sampleDelay = 25) {
+  async detectLightLevel(video, sampleCount = 10, sampleDelay = 20) {
     const brightnessSamples = [];
     
     for (let i = 0; i < sampleCount; i++) {
-      // Draw video frame to canvas
       this.context.drawImage(video, 0, 0, this.canvas.width, this.canvas.height);
-      
-      // Get image data
       const imageData = this.context.getImageData(0, 0, this.canvas.width, this.canvas.height);
       const data = imageData.data;
       
       let totalBrightness = 0;
       const pixelCount = (this.canvas.width * this.canvas.height);
       
-      // Calculate brightness using luminance formula
       for (let j = 0; j < data.length; j += 4) {
         const r = data[j];
         const g = data[j + 1];
@@ -114,26 +112,60 @@ class RapidSamplingLightDetector {
       const avgBrightness = totalBrightness / pixelCount;
       brightnessSamples.push(avgBrightness);
       
-      // Wait for next sample
       if (i < sampleCount - 1) {
         await this.delay(sampleDelay);
       }
     }
+
+    return this.analyzeBrightnessChange(brightnessSamples);
+  }
+
+  analyzeBrightnessChange(samples) {
+    const currentAvg = samples.reduce((a, b) => a + b) / samples.length;
+    const minBrightness = Math.min(...samples);
+    const maxBrightness = Math.max(...samples);
+    const variance = this.calculateVariance(samples);
     
-    const minBrightness = Math.min(...brightnessSamples);
-    const maxBrightness = Math.max(...brightnessSamples);
-    const variance = this.calculateVariance(brightnessSamples);
-    const lightLevel = this.mapBrightnessToLightLevel(minBrightness);
+    // Establish baseline if not set
+    if (this.baselineBrightness === null) {
+      if (variance < 5) { // Stable readings
+        this.stabilizationCount++;
+        if (this.stabilizationCount >= 3) {
+          this.baselineBrightness = currentAvg;
+          this.baselineSamples = [...samples];
+          console.log('Baseline established:', this.baselineBrightness);
+        }
+      }
+      return { status: 'calibrating', baseline: null, change: 0 };
+    }
+
+    // Calculate relative change
+    const relativeChange = ((currentAvg - this.baselineBrightness) / this.baselineBrightness) * 100;
     
-    return {
-      samples: brightnessSamples,
-      minBrightness,
-      maxBrightness,
-      variance,
-      lightLevel,
-      autoExposureDetected: variance > 30,
-      estimatedActualBrightness: minBrightness // Use minimum as it's less affected by auto-exposure
+    // Use multiple detection criteria
+    const detectionResult = {
+      samples: samples,
+      currentBrightness: currentAvg,
+      baselineBrightness: this.baselineBrightness,
+      relativeChange: relativeChange,
+      absoluteChange: currentAvg - this.baselineBrightness,
+      variance: variance,
+      lightDetected: this.isLightDetected(relativeChange, currentAvg, variance)
     };
+
+    return detectionResult;
+  }
+
+  isLightDetected(relativeChange, currentBrightness, variance) {
+    // Multiple criteria for light detection
+    const relativeThreshold = 10; // 10% increase
+    const absoluteMinChange = 15; // Minimum 15 point change
+    const varianceThreshold = 20; // High variance indicates rapid change
+    
+    return (
+      relativeChange > relativeThreshold || 
+      (currentBrightness - this.baselineBrightness > absoluteMinChange && variance < varianceThreshold)
+    );
   }
 
   calculateVariance(numbers) {
@@ -142,16 +174,13 @@ class RapidSamplingLightDetector {
     return squaredDiffs.reduce((a, b) => a + b) / numbers.length;
   }
 
-  mapBrightnessToLightLevel(brightness) {
-    if (brightness < 25) return 'very dark';
-    if (brightness < 50) return 'dark';
-    if (brightness < 100) return 'dim';
-    if (brightness < 150) return 'normal';
-    return 'bright';
-  }
-
   delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  resetBaseline() {
+    this.baselineBrightness = null;
+    this.stabilizationCount = 0;
   }
 }
 
@@ -178,8 +207,8 @@ async function startLightCheck() {
       canvas.height = video.videoHeight;
       context = canvas.getContext("2d");
       
-      // Initialize the rapid sampling detector
-      lightDetector = new RapidSamplingLightDetector(context, canvas);
+      // Initialize the improved detector
+      improvedLightDetector = new ImprovedLightDetector(context, canvas);
       
       // Start enhanced light level checking
       enhancedLightCheck(video);
@@ -190,60 +219,68 @@ async function startLightCheck() {
   }
 }
 
-// Enhanced light checking with rapid sampling
+let improvedLightDetector;
+let calibrationPhase = true;
+let consecutiveDetections = 0;
+
 async function enhancedLightCheck(video) {
   if (lockOpacity) {
-    setTimeout(() => enhancedLightCheck(video), 200);
+    setTimeout(() => enhancedLightCheck(video), 300);
     return;
   }
 
   try {
-    // Use rapid sampling to detect light before auto-exposure fully adjusts
-    const lightResult = await lightDetector.detectLightLevel(video, 6, 30);
+    const lightResult = await improvedLightDetector.detectLightLevel(video, 8, 25);
     
-    const actualBrightness = lightResult.estimatedActualBrightness;
-    const brightnessThreshold = 250; // Adjusted threshold
+    if (lightResult.status === 'calibrating') {
+      document.getElementById("brightnessDisplay").textContent = 
+        `Calibrage en cours... ${Math.round(lightResult.currentBrightness || 0)}`;
+      setTimeout(() => enhancedLightCheck(video), 500);
+      return;
+    }
+
+    const { currentBrightness, baselineBrightness, relativeChange, absoluteChange, lightDetected } = lightResult;
     
-    // Display enhanced brightness info
+    // Enhanced display with more information
     document.getElementById("brightnessDisplay").textContent = 
-      `Luminosité: ${Math.round(actualBrightness)} (${lightResult.lightLevel}) ${lightResult.autoExposureDetected ? '[Auto-Expo Détecté]' : ''}`;
+      `Luminosité: ${Math.round(currentBrightness)} | Base: ${Math.round(baselineBrightness)} | Change: ${relativeChange.toFixed(1)}% (${absoluteChange.toFixed(1)})`;
     
-    console.log('Light Analysis:', {
-      samples: lightResult.samples,
-      min: lightResult.minBrightness,
-      max: lightResult.maxBrightness,
-      variance: lightResult.variance,
-      level: lightResult.lightLevel,
-      autoExposure: lightResult.autoExposureDetected
+    console.log('Enhanced Light Analysis:', {
+      current: currentBrightness,
+      baseline: baselineBrightness,
+      relativeChange: relativeChange,
+      absoluteChange: absoluteChange,
+      detected: lightDetected,
+      samples: lightResult.samples
     });
 
-    // Enhanced flash detection logic
-    if (actualBrightness > brightnessThreshold) {
-      // Bright light detected (possible flashlight)
-      darkScreen.style.opacity = 0;
-      darkScreen.style.pointerEvents = "none";
-      clearInterval(torchInterval);
+    if (lightDetected) {
+      consecutiveDetections++;
       
-      lockOpacityUntilSignificantChange(actualBrightness);
+      // Require multiple consecutive detections to avoid false positives
+      if (consecutiveDetections >= 2) {
+        darkScreen.style.opacity = 0;
+        darkScreen.style.pointerEvents = "none";
+        clearInterval(torchInterval);
+        
+        lockOpacityUntilSignificantChange(currentBrightness);
+        consecutiveDetections = 0; // Reset counter
+      }
     } else {
-      // Check for significant brightness changes
-      const brightnessChange = Math.abs(actualBrightness - lastBrightness);
+      consecutiveDetections = 0;
       
-      if (brightnessChange > brightnessChangeThreshold) {
-        // Significant change detected
-        if (actualBrightness < lastBrightness - brightnessChangeThreshold) {
-          // Brightness dropped significantly
-          darkScreen.style.opacity = 1;
-          darkScreen.style.pointerEvents = "auto";
-          // Restart torch interval if needed
-          if (!torchInterval) {
-            torchInterval = setInterval(createTorchIcon, 30000);
-          }
+      // Check if brightness dropped significantly below baseline
+      if (relativeChange < -15) { // 15% decrease from baseline
+        darkScreen.style.opacity = 1;
+        darkScreen.style.pointerEvents = "auto";
+        
+        if (!torchInterval) {
+          torchInterval = setInterval(createTorchIcon, 30000);
         }
       }
     }
     
-    lastBrightness = actualBrightness;
+    lastBrightness = currentBrightness;
     
   } catch (error) {
     console.error('Enhanced light check failed:', error);
@@ -253,7 +290,6 @@ async function enhancedLightCheck(video) {
       `Luminosité (Simple): ${Math.round(simpleBrightness)}`;
   }
 
-  // Continue checking
   setTimeout(() => enhancedLightCheck(video), 200);
 }
 
