@@ -340,7 +340,7 @@ function smartLightCheck() {
   
   // Affichage complet de toutes les informations
   const fullDisplayText = formatDetectionDetails(detection, analysis, torchState);
-  document.getElementById("brightnessDisplay").textContent = fullDisplayText;
+  //document.getElementById("brightnessDisplay").textContent = fullDisplayText;
   
   console.log('Informations complètes:', {
     analysis: {
