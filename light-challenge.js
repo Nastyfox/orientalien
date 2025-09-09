@@ -70,7 +70,7 @@ let lockTimer = null;
 let torchDetectionStartTime = null;
 let torchConfirmed = false;
 let lastScreenState = 1; // 1 = écran noir visible, 0 = écran noir supprimé
-const TORCH_CONFIRMATION_PERIOD = 3000; // 3 secondes de détection stable requises
+const TORCH_CONFIRMATION_PERIOD = 1000; // 1 seconde de détection stable requises
 
 async function startSmartLightCheck() {
   video = document.getElementById("camera");
@@ -255,7 +255,7 @@ function updateTorchDetectionState(torchDetected) {
     const elapsedTime = now - torchDetectionStartTime;
     if (elapsedTime >= TORCH_CONFIRMATION_PERIOD && !torchConfirmed) {
       torchConfirmed = true;
-      console.log('✅ TORCH CONFIRMÉ après 3 secondes de détection stable!');
+      console.log('✅ TORCH CONFIRMÉ après 1 seconde de détection stable!');
       
       // Maintenant on peut enlever l'écran noir
       darkScreen.style.opacity = 0;
@@ -288,6 +288,38 @@ function updateTorchDetectionState(torchDetected) {
   }
 }
 
+// Fonction pour formater toutes les informations de détection
+function formatDetectionDetails(detection, analysis, torchState) {
+  let details = [];
+  
+  // Informations de base
+  details.push(`Lum: ${Math.round(analysis.avgBrightness)}`);
+  details.push(`Centre: ${analysis.centerBrightRatio.toFixed(1)}%`);
+  details.push(`Haut: ${analysis.topBrightRatio.toFixed(1)}%`);
+  details.push(`Bords: ${analysis.edgeBrightRatio.toFixed(1)}%`);
+  
+  // Informations de détection
+  details.push(`Type: ${detection.type}`);
+  details.push(`Score Torch: ${detection.torchScore}`);
+  details.push(`Score Contre-jour: ${detection.backlightScore}`);
+  details.push(`Confiance: ${detection.confidence}`);
+  
+  // Raisons de détection
+  if (detection.reasons.length > 0) {
+    details.push(`Raisons: ${detection.reasons.join(', ')}`);
+  }
+  
+  // État de confirmation du torch
+  if (torchState.status === 'confirming') {
+    const secondsLeft = (torchState.timeRemaining / 1000).toFixed(1);
+    details.push(`🔦 Torch détecté (${secondsLeft}s) ${Math.round(torchState.progress)}%`);
+  } else if (torchState.status === 'confirmed') {
+    details.push('✅ TORCH CONFIRMÉ');
+  }
+  
+  return details.join(' | ');
+}
+
 let previousAnalysis = null;
 
 function smartLightCheck() {
@@ -306,22 +338,18 @@ function smartLightCheck() {
   const detection = detectTorchVsBacklight(analysis, previousAnalysis);
   const torchState = updateTorchDetectionState(detection.detected && detection.type === 'torch');
   
-  // Affichage avec progression
-  let displayText = `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}%`;
+  // Affichage complet de toutes les informations
+  const fullDisplayText = formatDetectionDetails(detection, analysis, torchState);
+  document.getElementById("brightnessDisplay").textContent = fullDisplayText;
   
-  if (torchState.status === 'confirming') {
-    const secondsLeft = Math.ceil(torchState.timeRemaining / 1000);
-    displayText += ` | 🔦 Torch détecté (${secondsLeft}s) ${Math.round(torchState.progress)}%`;
-  } else if (torchState.status === 'confirmed') {
-    displayText += ` | ✅ TORCH CONFIRMÉ`;
-  } else {
-    displayText += ` | Type: ${detection.type}`;
-  }
-  
-  document.getElementById("brightnessDisplay").textContent = displayText;
-  
-  console.log('État torch:', {
-    detection: detection.type,
+  console.log('Informations complètes:', {
+    analysis: {
+      avgBrightness: analysis.avgBrightness.toFixed(2),
+      centerBrightRatio: analysis.centerBrightRatio.toFixed(2),
+      topBrightRatio: analysis.topBrightRatio.toFixed(2),
+      edgeBrightRatio: analysis.edgeBrightRatio.toFixed(2)
+    },
+    detection: detection,
     torchState: torchState,
     screenOpacity: darkScreen.style.opacity
   });
