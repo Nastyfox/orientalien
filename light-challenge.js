@@ -93,6 +93,8 @@ async function startSmartLightCheck() {
       canvas.height = video.videoHeight;
       context = canvas.getContext("2d");
       
+	  document.body.style.overflow = 'hidden';
+	  document.documentElement.style.overflow = 'hidden';
       smartLightCheck();
     };
   } catch (error) {
