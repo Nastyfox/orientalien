@@ -66,9 +66,11 @@ let brightnessHistory = [];
 let lockOpacity = false;
 let lockTimer = null;
 
-// Variables pour la détection différée du torch
-let torchDetectionHistory = [];
-const TORCH_CONFIRMATION_DELAY = 500; // 500ms pour confirmer qu'il s'agit bien d'un torch
+// Variables pour la détection stable du torch
+let torchDetectionStartTime = null;
+let torchConfirmed = false;
+let lastScreenState = 1; // 1 = écran noir visible, 0 = écran noir supprimé
+const TORCH_CONFIRMATION_PERIOD = 3000; // 3 secondes de détection stable requises
 
 async function startSmartLightCheck() {
   video = document.getElementById("camera");
@@ -239,34 +241,51 @@ function detectTorchVsBacklight(analysis, previousAnalysis) {
   };
 }
 
-function evaluateTorchConfirmation() {
-  // Vérifier les détections récentes
+function updateTorchDetectionState(torchDetected) {
   const now = Date.now();
-  const recentDetections = torchDetectionHistory.filter(
-    detection => (now - detection.timestamp) < TORCH_CONFIRMATION_DELAY
-  );
   
-  if (recentDetections.length < 3) {
-    return { confirmed: false, reason: 'Pas assez de détections récentes' };
-  }
-  
-  // Vérifier que c'est bien des détections de torch (pas de contre-jour)
-  const torchDetections = recentDetections.filter(d => d.type === 'torch');
-  const backlightDetections = recentDetections.filter(d => d.type === 'backlight');
-  
-  if (backlightDetections.length > torchDetections.length) {
-    return { confirmed: false, reason: 'Plus de contre-jour que de torch détecté' };
-  }
-  
-  if (torchDetections.length >= 3) {
-    return { 
-      confirmed: true, 
-      reason: `${torchDetections.length} détections de torch confirmées`,
-      avgTorchScore: torchDetections.reduce((sum, d) => sum + d.torchScore, 0) / torchDetections.length
+  if (torchDetected) {
+    // Début de détection du torch
+    if (torchDetectionStartTime === null) {
+      torchDetectionStartTime = now;
+      console.log('🔦 Début de détection torch - Démarrage du timer de confirmation');
+    }
+    
+    // Vérifier si on a assez attendu
+    const elapsedTime = now - torchDetectionStartTime;
+    if (elapsedTime >= TORCH_CONFIRMATION_PERIOD && !torchConfirmed) {
+      torchConfirmed = true;
+      console.log('✅ TORCH CONFIRMÉ après 3 secondes de détection stable!');
+      
+      // Maintenant on peut enlever l'écran noir
+      darkScreen.style.opacity = 0;
+      darkScreen.style.pointerEvents = "none";
+      clearInterval(torchInterval);
+      lastScreenState = 0;
+      
+      lockOpacityUntilChange();
+    }
+    
+    return {
+      status: torchConfirmed ? 'confirmed' : 'confirming',
+      timeRemaining: torchConfirmed ? 0 : Math.max(0, TORCH_CONFIRMATION_PERIOD - elapsedTime),
+      progress: Math.min(100, (elapsedTime / TORCH_CONFIRMATION_PERIOD) * 100)
     };
+  } else {
+    // Plus de détection de torch
+    if (torchDetectionStartTime !== null) {
+      console.log('❌ Détection torch interrompue - Reset du timer');
+    }
+    torchDetectionStartTime = null;
+    
+    // Si le torch était confirmé et qu'on ne le détecte plus, on peut restaurer l'écran
+    if (torchConfirmed) {
+      console.log('🔄 Torch confirmé disparu - Attendre avant de restaurer l\'écran');
+      // On ne restore pas immédiatement, on attend la fonction lockOpacityUntilChange
+    }
+    
+    return { status: 'none', timeRemaining: 0, progress: 0 };
   }
-  
-  return { confirmed: false, reason: 'Détection non stable' };
 }
 
 let previousAnalysis = null;
@@ -285,56 +304,38 @@ function smartLightCheck() {
   }
   
   const detection = detectTorchVsBacklight(analysis, previousAnalysis);
+  const torchState = updateTorchDetectionState(detection.detected && detection.type === 'torch');
   
-  // Ajouter à l'historique
-  torchDetectionHistory.push({
-    timestamp: analysis.timestamp,
-    type: detection.type,
-    detected: detection.detected,
-    torchScore: detection.torchScore,
-    backlightScore: detection.backlightScore
-  });
+  // Affichage avec progression
+  let displayText = `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}%`;
   
-  // Garder seulement les 10 dernières détections
-  if (torchDetectionHistory.length > 10) {
-    torchDetectionHistory.shift();
+  if (torchState.status === 'confirming') {
+    const secondsLeft = Math.ceil(torchState.timeRemaining / 1000);
+    displayText += ` | 🔦 Torch détecté (${secondsLeft}s) ${Math.round(torchState.progress)}%`;
+  } else if (torchState.status === 'confirmed') {
+    displayText += ` | ✅ TORCH CONFIRMÉ`;
+  } else {
+    displayText += ` | Type: ${detection.type}`;
   }
   
-  // Évaluer si on a confirmation d'un torch
-  const confirmation = evaluateTorchConfirmation();
+  document.getElementById("brightnessDisplay").textContent = displayText;
   
-  // Affichage
-  document.getElementById("brightnessDisplay").textContent = 
-    `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}% | ${detection.type} | ${confirmation.confirmed ? '✅ TORCH CONFIRMÉ' : '⏳ Vérification...'}`;
-  
-  console.log('Analyse:', {
-    detection: detection,
-    confirmation: confirmation,
-    recentHistory: torchDetectionHistory.slice(-5)
+  console.log('État torch:', {
+    detection: detection.type,
+    torchState: torchState,
+    screenOpacity: darkScreen.style.opacity
   });
 
-  // SEULE CONDITION pour enlever l'image noire : TORCH CONFIRMÉ
-  if (confirmation.confirmed) {
-    console.log('🔦 TORCH CONFIRMÉ - Suppression de l\'écran noir!', confirmation);
-    
-    darkScreen.style.opacity = 0;
-    darkScreen.style.pointerEvents = "none";
-    clearInterval(torchInterval);
-    
-    lockOpacityUntilChange(analysis);
-  }
-  
-  // Le contre-jour ne fait RIEN - l'image noire reste
-  if (detection.type === 'backlight') {
-    console.log('☀️ Contre-jour détecté - L\'écran noir reste en place');
-  }
+  // IMPORTANT: Pendant la vérification, on ne change PAS l'état de l'écran
+  // L'écran ne change QUE quand le torch est confirmé (dans updateTorchDetectionState)
+  // ou quand lockOpacityUntilChange détecte un changement significatif
   
   previousAnalysis = analysis;
   
   setTimeout(smartLightCheck, 100);
 }
 
-function lockOpacityUntilChange(referenceAnalysis) {
+function lockOpacityUntilChange() {
   lockOpacity = true;
   
   clearTimeout(lockTimer);
@@ -347,31 +348,35 @@ function lockOpacityUntilChange(referenceAnalysis) {
       return;
     }
     
-    // Vérifier si la luminosité centrale a diminué significativement
-    const centerChange = referenceAnalysis.centerBrightRatio - newAnalysis.centerBrightRatio;
-    const overallChange = referenceAnalysis.brightRatio - newAnalysis.brightRatio;
+    const newDetection = detectTorchVsBacklight(newAnalysis, previousAnalysis);
     
-    if (centerChange > 10 || overallChange > 8) {
-      lockOpacity = false;
-      
-      // Réinitialiser l'historique des détections
-      torchDetectionHistory = [];
-      
-      // Restaurer l'écran sombre
-      darkScreen.style.opacity = 1;
-      darkScreen.style.pointerEvents = "auto";
-      
-      if (!torchInterval) {
-        torchInterval = setInterval(createTorchIcon, 30000);
+    // Si on ne détecte plus de torch pendant un certain temps, restaurer
+    if (newDetection.type !== 'torch' || !newDetection.detected) {
+      // Vérifier si ça fait assez longtemps qu'on ne détecte plus le torch
+      const now = Date.now();
+      if (torchDetectionStartTime === null || (now - torchDetectionStartTime) > 2000) {
+        lockOpacity = false;
+        torchConfirmed = false;
+        torchDetectionStartTime = null;
+        
+        // Restaurer l'écran sombre
+        darkScreen.style.opacity = 1;
+        darkScreen.style.pointerEvents = "auto";
+        lastScreenState = 1;
+        
+        if (!torchInterval) {
+          torchInterval = setInterval(createTorchIcon, 30000);
+        }
+        
+        console.log('🔄 Torch disparu - Écran noir restauré');
+        return;
       }
-      
-      console.log('Changement significatif détecté, déverrouillage');
-    } else {
-      setTimeout(checkForChange, 200);
     }
+    
+    setTimeout(checkForChange, 200);
   };
   
-  lockTimer = setTimeout(checkForChange, 500);
+  lockTimer = setTimeout(checkForChange, 1000);
 }
 
 function createTorchIcon() {
