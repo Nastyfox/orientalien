@@ -33,14 +33,14 @@ video {
 }
 
 #dark-screen {
-  position: absolute;
+  position: fixed; /* Changed from absolute to fixed */
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   background-color: black;
-  opacity: 100; /* Start fully transparent */
-  transition: opacity 0.5s ease; /* Smooth transition for opacity */
+  opacity: 1; /* Changed from 100 to 1 (opacity values are 0-1) */
+  transition: opacity 0.5s ease;
   z-index: 1;
   pointer-events: auto;
 }
