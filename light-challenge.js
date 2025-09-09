@@ -49,10 +49,9 @@ export async function initializePageScripts(challengeId) {
     darkScreen = document.getElementById("dark-screen");
     context = canvas.getContext("2d");
     
-    // Set interval to create the torch icon every 30 seconds
     torchInterval = setInterval(createTorchIcon, 30000);
     
-    startHistogramLightCheck();
+    startSmartLightCheck();
     
     const unsubscribeListener = listenChallengeChanges(teamName, db, targetId);
   } else {
@@ -63,11 +62,11 @@ export async function initializePageScripts(challengeId) {
 const message = document.getElementById("message");
 let currentStream = null;
 let canvas, context, darkScreen, video;
-let lastBrightPixelRatio = 0;
+let brightnessHistory = [];
 let lockOpacity = false;
 let lockTimer = null;
 
-async function startHistogramLightCheck() {
+async function startSmartLightCheck() {
   video = document.getElementById("camera");
   video.setAttribute("playsinline", true);
   video.setAttribute("autoplay", true);
@@ -79,10 +78,6 @@ async function startHistogramLightCheck() {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: "user" },
     });
-    /*
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" },
-    });*/
     
     video.srcObject = stream;
     video.play();
@@ -92,8 +87,7 @@ async function startHistogramLightCheck() {
       canvas.height = video.videoHeight;
       context = canvas.getContext("2d");
       
-      // Start histogram-based light checking
-      histogramLightCheck();
+      smartLightCheck();
     };
   } catch (error) {
     console.error("Error accessing camera:", error);
@@ -101,219 +95,246 @@ async function startHistogramLightCheck() {
   }
 }
 
-// Enhanced brightness analysis with histogram
-function analyzeImageHistogram() {
+// Analyse spatiale pour différencier torch vs contre-jour
+function analyzeSpatialDistribution() {
   if (!video || !canvas || !context) return null;
   
   context.drawImage(video, 0, 0, canvas.width, canvas.height);
   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
   
-  // Create histogram for brightness values
-  const histogram = new Array(256).fill(0);
-  let totalBrightness = 0;
-  let totalPixels = 0;
+  const width = canvas.width;
+  const height = canvas.height;
   
-  // Calculate histogram and average brightness
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
-    
-    histogram[brightness]++;
-    totalBrightness += brightness;
-    totalPixels++;
+  // Diviser l'image en régions
+  const centerRegion = { bright: 0, total: 0 };
+  const edgeRegion = { bright: 0, total: 0 };
+  const topRegion = { bright: 0, total: 0 };
+  
+  // Définir les zones
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const centerRadius = Math.min(width, height) / 4;
+  
+  let totalBrightness = 0;
+  let brightPixels = 0;
+  let veryBrightPixels = 0;
+  let brightClusters = 0;
+  
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      const idx = (y * width + x) * 4;
+      const r = data[idx];
+      const g = data[idx + 1];
+      const b = data[idx + 2];
+      const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      
+      totalBrightness += brightness;
+      
+      const isBright = brightness > 180;
+      const isVeryBright = brightness > 220;
+      
+      if (isBright) brightPixels++;
+      if (isVeryBright) veryBrightPixels++;
+      
+      // Distance du centre
+      const distanceFromCenter = Math.sqrt(
+        Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
+      );
+      
+      // Classifier par région
+      if (distanceFromCenter < centerRadius) {
+        centerRegion.total++;
+        if (isBright) centerRegion.bright++;
+      } else {
+        edgeRegion.total++;
+        if (isBright) edgeRegion.bright++;
+      }
+      
+      // Région du haut (contre-jour typique)
+      if (y < height / 3) {
+        topRegion.total++;
+        if (isBright) topRegion.bright++;
+      }
+    }
   }
   
-  // Analyze different brightness ranges
-  const veryBrightPixels = histogram.slice(220, 256).reduce((a, b) => a + b, 0); // 220-255
-  const brightPixels = histogram.slice(180, 256).reduce((a, b) => a + b, 0);     // 180-255
-  const normalPixels = histogram.slice(80, 180).reduce((a, b) => a + b, 0);      // 80-179
-  const darkPixels = histogram.slice(0, 80).reduce((a, b) => a + b, 0);          // 0-79
-  
-  // Calculate ratios
-  const veryBrightRatio = (veryBrightPixels / totalPixels) * 100;
-  const brightRatio = (brightPixels / totalPixels) * 100;
-  const normalRatio = (normalPixels / totalPixels) * 100;
-  const darkRatio = (darkPixels / totalPixels) * 100;
-  
-  // Find peak brightness
-  const maxCount = Math.max(...histogram);
-  const peakBrightness = histogram.indexOf(maxCount);
-  
-  // Average brightness
+  const totalPixels = width * height;
   const avgBrightness = totalBrightness / totalPixels;
+  const brightRatio = (brightPixels / totalPixels) * 100;
+  const veryBrightRatio = (veryBrightPixels / totalPixels) * 100;
+  
+  // Calculer les ratios par région
+  const centerBrightRatio = centerRegion.total > 0 ? (centerRegion.bright / centerRegion.total) * 100 : 0;
+  const edgeBrightRatio = edgeRegion.total > 0 ? (edgeRegion.bright / edgeRegion.total) * 100 : 0;
+  const topBrightRatio = topRegion.total > 0 ? (topRegion.bright / topRegion.total) * 100 : 0;
   
   return {
-    avgBrightness: avgBrightness,
-    veryBrightRatio: veryBrightRatio,
-    brightRatio: brightRatio,
-    normalRatio: normalRatio,
-    darkRatio: darkRatio,
-    peakBrightness: peakBrightness,
-    histogram: histogram,
-    totalPixels: totalPixels
+    avgBrightness,
+    brightRatio,
+    veryBrightRatio,
+    centerBrightRatio,
+    edgeBrightRatio,
+    topBrightRatio,
+    width,
+    height
   };
 }
 
-function histogramLightCheck() {
+function detectTorchVsBacklight(analysis, previousAnalysis) {
+  if (!analysis) return { detected: false, type: 'no_data' };
+  
+  let torchScore = 0;
+  let backlightScore = 0;
+  let reasons = [];
+  
+  // Caractéristiques d'un torch/flash :
+  // - Luminosité concentrée au centre
+  // - Changement soudain
+  // - Pas principalement dans le haut de l'image
+  
+  // Score TORCH
+  if (analysis.centerBrightRatio > analysis.edgeBrightRatio * 1.5) {
+    torchScore += 30;
+    reasons.push('Luminosité concentrée au centre');
+  }
+  
+  if (analysis.veryBrightRatio > 3 && analysis.centerBrightRatio > 20) {
+    torchScore += 25;
+    reasons.push('Pixels très brillants concentrés');
+  }
+  
+  // Changement soudain par rapport à l'analyse précédente
+  if (previousAnalysis) {
+    const brightChange = analysis.brightRatio - previousAnalysis.brightRatio;
+    if (brightChange > 15) { // Augmentation soudaine
+      torchScore += 20;
+      reasons.push('Changement soudain de luminosité');
+    }
+  }
+  
+  // Score CONTRE-JOUR
+  if (analysis.topBrightRatio > analysis.centerBrightRatio * 1.3) {
+    backlightScore += 35;
+    reasons.push('Luminosité principalement en haut');
+  }
+  
+  if (analysis.edgeBrightRatio > analysis.centerBrightRatio) {
+    backlightScore += 25;
+    reasons.push('Luminosité sur les bords');
+  }
+  
+  if (analysis.brightRatio > 25 && analysis.topBrightRatio > 40) {
+    backlightScore += 30;
+    reasons.push('Fort contre-jour détecté');
+  }
+  
+  // Répartition uniforme = probablement contre-jour
+  const uniformity = Math.abs(analysis.centerBrightRatio - analysis.edgeBrightRatio);
+  if (uniformity < 10 && analysis.brightRatio > 20) {
+    backlightScore += 20;
+    reasons.push('Répartition uniforme de la luminosité');
+  }
+  
+  return {
+    detected: torchScore > backlightScore && torchScore > 40,
+    type: torchScore > backlightScore ? 'torch' : 'backlight',
+    torchScore,
+    backlightScore,
+    confidence: Math.max(torchScore, backlightScore) > 60 ? 'high' : 'medium',
+    reasons
+  };
+}
+
+let previousAnalysis = null;
+
+function smartLightCheck() {
   if (lockOpacity) {
-    setTimeout(histogramLightCheck, 100);
+    setTimeout(smartLightCheck, 100);
     return;
   }
 
-  const analysis = analyzeImageHistogram();
+  const analysis = analyzeSpatialDistribution();
   
   if (!analysis) {
-    setTimeout(histogramLightCheck, 100);
+    setTimeout(smartLightCheck, 100);
     return;
   }
   
-  // Display comprehensive brightness information
-  document.getElementById("brightnessDisplay").textContent = 
-    `Lum: ${Math.round(analysis.avgBrightness)} | Brillants: ${analysis.brightRatio.toFixed(1)}% | Très brillants: ${analysis.veryBrightRatio.toFixed(1)}% | Pic: ${analysis.peakBrightness}`;
+  const detection = detectTorchVsBacklight(analysis, previousAnalysis);
   
-  console.log('Histogram Analysis:', {
+  // Affichage détaillé
+  document.getElementById("brightnessDisplay").textContent = 
+    `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}% | Type: ${detection.type} (${detection.confidence})`;
+  
+  console.log('Analyse spatiale:', {
     avgBrightness: analysis.avgBrightness.toFixed(2),
-    veryBrightRatio: analysis.veryBrightRatio.toFixed(2),
     brightRatio: analysis.brightRatio.toFixed(2),
-    peakBrightness: analysis.peakBrightness,
-    darkRatio: analysis.darkRatio.toFixed(2)
+    centerBrightRatio: analysis.centerBrightRatio.toFixed(2),
+    topBrightRatio: analysis.topBrightRatio.toFixed(2),
+    detection: detection
   });
 
-  // Torch detection based on histogram analysis
-  const torchDetected = detectTorchFromHistogram(analysis);
-  
-  if (torchDetected.detected) {
-    console.log('🔦 TORCH DETECTED!', torchDetected);
+  if (detection.detected && detection.type === 'torch') {
+    console.log('🔦 TORCH DÉTECTÉ!', detection);
     
-    // Remove dark screen overlay
     darkScreen.style.opacity = 0;
     darkScreen.style.pointerEvents = "none";
     clearInterval(torchInterval);
     
-    // Lock the opacity until significant change
-    lockOpacityUntilHistogramChange(analysis);
-  } else {
-    // Check if we should restore the dark screen
-    const significantDecrease = 
-      lastBrightPixelRatio > 0 && 
-      analysis.brightRatio < lastBrightPixelRatio * 0.5; // 50% decrease
+    lockOpacityUntilChange(analysis);
+  } else if (detection.type === 'backlight') {
+    console.log('☀️ Contre-jour détecté, pas un torch');
+  }
+  
+  // Historique pour détecter les changements
+  brightnessHistory.push(analysis);
+  if (brightnessHistory.length > 10) {
+    brightnessHistory.shift();
+  }
+  
+  previousAnalysis = analysis;
+  
+  setTimeout(smartLightCheck, 100);
+}
+
+function lockOpacityUntilChange(referenceAnalysis) {
+  lockOpacity = true;
+  
+  clearTimeout(lockTimer);
+  
+  const checkForChange = () => {
+    const newAnalysis = analyzeSpatialDistribution();
     
-    if (significantDecrease) {
+    if (!newAnalysis) {
+      setTimeout(checkForChange, 200);
+      return;
+    }
+    
+    // Vérifier si la luminosité centrale a diminué significativement
+    const centerChange = referenceAnalysis.centerBrightRatio - newAnalysis.centerBrightRatio;
+    const overallChange = referenceAnalysis.brightRatio - newAnalysis.brightRatio;
+    
+    if (centerChange > 15 || overallChange > 10) {
+      lockOpacity = false;
+      
+      // Restaurer l'écran sombre si nécessaire
       darkScreen.style.opacity = 1;
       darkScreen.style.pointerEvents = "auto";
       
       if (!torchInterval) {
         torchInterval = setInterval(createTorchIcon, 30000);
       }
-    }
-  }
-  
-  lastBrightPixelRatio = analysis.brightRatio;
-  
-  // Continue checking
-  setTimeout(histogramLightCheck, 100);
-}
-
-function detectTorchFromHistogram(analysis) {
-  // Multiple criteria for torch detection
-  let score = 0;
-  let reasons = [];
-  
-  // Very bright pixels (220-255) - strong indicator
-  if (analysis.veryBrightRatio > 5) {
-    score += 40;
-    reasons.push(`Very bright pixels: ${analysis.veryBrightRatio.toFixed(1)}%`);
-  }
-  
-  // Bright pixels (180-255) - moderate indicator
-  if (analysis.brightRatio > 15) {
-    score += 25;
-    reasons.push(`Bright pixels: ${analysis.brightRatio.toFixed(1)}%`);
-  }
-  
-  // Peak brightness location
-  if (analysis.peakBrightness > 200) {
-    score += 20;
-    reasons.push(`High peak brightness: ${analysis.peakBrightness}`);
-  }
-  
-  // High contrast (both very bright and dark pixels)
-  if (analysis.veryBrightRatio > 3 && analysis.darkRatio > 20) {
-    score += 15;
-    reasons.push('High contrast detected');
-  }
-  
-  // Unusual distribution (not normal bell curve)
-  if (analysis.brightRatio > 10 && analysis.normalRatio < 60) {
-    score += 10;
-    reasons.push('Unusual brightness distribution');
-  }
-  
-  return {
-    detected: score >= 50,
-    score: score,
-    reasons: reasons,
-    confidence: score >= 70 ? 'high' : score >= 50 ? 'medium' : 'low'
-  };
-}
-
-function lockOpacityUntilHistogramChange(currentAnalysis) {
-  lockOpacity = true;
-  const referenceAnalysis = { ...currentAnalysis };
-  
-  clearTimeout(lockTimer);
-  
-  // Check for significant histogram changes
-  const checkHistogramChange = () => {
-    const newAnalysis = analyzeImageHistogram();
-    
-    if (!newAnalysis) {
-      setTimeout(checkHistogramChange, 200);
-      return;
-    }
-    
-    // Calculate change in bright pixel ratio
-    const brightRatioChange = Math.abs(newAnalysis.brightRatio - referenceAnalysis.brightRatio);
-    const veryBrightRatioChange = Math.abs(newAnalysis.veryBrightRatio - referenceAnalysis.veryBrightRatio);
-    
-    // Unlock if significant change detected
-    if (brightRatioChange > 10 || veryBrightRatioChange > 3) {
-      lockOpacity = false;
-      console.log('Histogram change detected, unlocking opacity');
+      
+      console.log('Changement significatif détecté, déverrouillage');
     } else {
-      setTimeout(checkHistogramChange, 200);
+      setTimeout(checkForChange, 200);
     }
   };
   
-  // Start checking after 1 second
-  lockTimer = setTimeout(checkHistogramChange, 1000);
+  lockTimer = setTimeout(checkForChange, 1000);
 }
 
-// Simple brightness calculation (fallback)
-function calculateBrightness() {
-  if (!video || !canvas || !context) return 0;
-  
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-  const data = imageData.data;
-  let totalBrightness = 0;
-  const pixelCount = canvas.width * canvas.height;
-
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-    totalBrightness += brightness;
-  }
-
-  return totalBrightness / pixelCount;
-}
-
-// Add this function to your script
 function createTorchIcon() {
   const torchIcon = document.createElement("div");
   torchIcon.className = "torch-icon";
