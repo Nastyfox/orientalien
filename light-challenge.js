@@ -66,6 +66,11 @@ let brightnessHistory = [];
 let lockOpacity = false;
 let lockTimer = null;
 
+// Variables pour gérer le délai du contre-jour
+let backlightDetectionTime = null;
+let backlightDelayTimer = null;
+const BACKLIGHT_DELAY = 800; // Délai réduit à 800ms
+
 async function startSmartLightCheck() {
   video = document.getElementById("camera");
   video.setAttribute("playsinline", true);
@@ -106,12 +111,10 @@ function analyzeSpatialDistribution() {
   const width = canvas.width;
   const height = canvas.height;
   
-  // Diviser l'image en régions
   const centerRegion = { bright: 0, total: 0 };
   const edgeRegion = { bright: 0, total: 0 };
   const topRegion = { bright: 0, total: 0 };
   
-  // Définir les zones
   const centerX = width / 2;
   const centerY = height / 2;
   const centerRadius = Math.min(width, height) / 4;
@@ -119,7 +122,6 @@ function analyzeSpatialDistribution() {
   let totalBrightness = 0;
   let brightPixels = 0;
   let veryBrightPixels = 0;
-  let brightClusters = 0;
   
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
@@ -137,12 +139,10 @@ function analyzeSpatialDistribution() {
       if (isBright) brightPixels++;
       if (isVeryBright) veryBrightPixels++;
       
-      // Distance du centre
       const distanceFromCenter = Math.sqrt(
         Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)
       );
       
-      // Classifier par région
       if (distanceFromCenter < centerRadius) {
         centerRegion.total++;
         if (isBright) centerRegion.bright++;
@@ -151,7 +151,6 @@ function analyzeSpatialDistribution() {
         if (isBright) edgeRegion.bright++;
       }
       
-      // Région du haut (contre-jour typique)
       if (y < height / 3) {
         topRegion.total++;
         if (isBright) topRegion.bright++;
@@ -164,7 +163,6 @@ function analyzeSpatialDistribution() {
   const brightRatio = (brightPixels / totalPixels) * 100;
   const veryBrightRatio = (veryBrightPixels / totalPixels) * 100;
   
-  // Calculer les ratios par région
   const centerBrightRatio = centerRegion.total > 0 ? (centerRegion.bright / centerRegion.total) * 100 : 0;
   const edgeBrightRatio = edgeRegion.total > 0 ? (edgeRegion.bright / edgeRegion.total) * 100 : 0;
   const topBrightRatio = topRegion.total > 0 ? (topRegion.bright / topRegion.total) * 100 : 0;
@@ -188,60 +186,57 @@ function detectTorchVsBacklight(analysis, previousAnalysis) {
   let backlightScore = 0;
   let reasons = [];
   
-  // Caractéristiques d'un torch/flash :
-  // - Luminosité concentrée au centre
-  // - Changement soudain
-  // - Pas principalement dans le haut de l'image
-  
-  // Score TORCH
-  if (analysis.centerBrightRatio > analysis.edgeBrightRatio * 1.5) {
-    torchScore += 30;
+  // Score TORCH - détection plus agressive
+  if (analysis.centerBrightRatio > analysis.edgeBrightRatio * 1.3) { // Réduit de 1.5 à 1.3
+    torchScore += 35;
     reasons.push('Luminosité concentrée au centre');
   }
   
-  if (analysis.veryBrightRatio > 3 && analysis.centerBrightRatio > 20) {
-    torchScore += 25;
+  if (analysis.veryBrightRatio > 2 && analysis.centerBrightRatio > 15) { // Réduit les seuils
+    torchScore += 30;
     reasons.push('Pixels très brillants concentrés');
   }
   
-  // Changement soudain par rapport à l'analyse précédente
+  // Changement soudain
   if (previousAnalysis) {
     const brightChange = analysis.brightRatio - previousAnalysis.brightRatio;
-    if (brightChange > 15) { // Augmentation soudaine
-      torchScore += 20;
+    const centerChange = analysis.centerBrightRatio - previousAnalysis.centerBrightRatio;
+    
+    if (brightChange > 10 || centerChange > 12) { // Seuils plus bas
+      torchScore += 25;
       reasons.push('Changement soudain de luminosité');
     }
   }
   
   // Score CONTRE-JOUR
-  if (analysis.topBrightRatio > analysis.centerBrightRatio * 1.3) {
-    backlightScore += 35;
+  if (analysis.topBrightRatio > analysis.centerBrightRatio * 1.2) {
+    backlightScore += 30;
     reasons.push('Luminosité principalement en haut');
   }
   
-  if (analysis.edgeBrightRatio > analysis.centerBrightRatio) {
+  if (analysis.edgeBrightRatio > analysis.centerBrightRatio * 1.1) {
     backlightScore += 25;
     reasons.push('Luminosité sur les bords');
   }
   
-  if (analysis.brightRatio > 25 && analysis.topBrightRatio > 40) {
-    backlightScore += 30;
+  if (analysis.brightRatio > 20 && analysis.topBrightRatio > 30) {
+    backlightScore += 35;
     reasons.push('Fort contre-jour détecté');
   }
   
-  // Répartition uniforme = probablement contre-jour
+  // Répartition uniforme
   const uniformity = Math.abs(analysis.centerBrightRatio - analysis.edgeBrightRatio);
-  if (uniformity < 10 && analysis.brightRatio > 20) {
-    backlightScore += 20;
+  if (uniformity < 12 && analysis.brightRatio > 15) {
+    backlightScore += 25;
     reasons.push('Répartition uniforme de la luminosité');
   }
   
   return {
-    detected: torchScore > backlightScore && torchScore > 40,
+    detected: torchScore > backlightScore && torchScore > 35, // Seuil réduit de 40 à 35
     type: torchScore > backlightScore ? 'torch' : 'backlight',
     torchScore,
     backlightScore,
-    confidence: Math.max(torchScore, backlightScore) > 60 ? 'high' : 'medium',
+    confidence: Math.max(torchScore, backlightScore) > 50 ? 'high' : 'medium',
     reasons
   };
 }
@@ -263,9 +258,16 @@ function smartLightCheck() {
   
   const detection = detectTorchVsBacklight(analysis, previousAnalysis);
   
-  // Affichage détaillé
-  document.getElementById("brightnessDisplay").textContent = 
-    `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}% | Type: ${detection.type} (${detection.confidence})`;
+  // Affichage avec indicateur de délai
+  let displayText = `Lum: ${Math.round(analysis.avgBrightness)} | Centre: ${analysis.centerBrightRatio.toFixed(1)}% | Haut: ${analysis.topBrightRatio.toFixed(1)}% | Type: ${detection.type}`;
+  
+  if (backlightDetectionTime) {
+    const elapsed = Date.now() - backlightDetectionTime;
+    const remaining = Math.max(0, BACKLIGHT_DELAY - elapsed);
+    displayText += ` | Attente: ${Math.ceil(remaining/100)/10}s`;
+  }
+  
+  document.getElementById("brightnessDisplay").textContent = displayText;
   
   console.log('Analyse spatiale:', {
     avgBrightness: analysis.avgBrightness.toFixed(2),
@@ -275,16 +277,42 @@ function smartLightCheck() {
     detection: detection
   });
 
+  // Gestion du TORCH (immédiate)
   if (detection.detected && detection.type === 'torch') {
     console.log('🔦 TORCH DÉTECTÉ!', detection);
+    
+    // Réinitialiser les timers de contre-jour
+    clearBacklightDelay();
     
     darkScreen.style.opacity = 0;
     darkScreen.style.pointerEvents = "none";
     clearInterval(torchInterval);
     
     lockOpacityUntilChange(analysis);
-  } else if (detection.type === 'backlight') {
-    console.log('☀️ Contre-jour détecté, pas un torch');
+  } 
+  
+  // Gestion du CONTRE-JOUR (avec délai)
+  else if (detection.type === 'backlight' && detection.backlightScore > 40) {
+    console.log('☀️ Contre-jour détecté');
+    
+    if (!backlightDetectionTime) {
+      // Première détection de contre-jour
+      backlightDetectionTime = Date.now();
+      
+      backlightDelayTimer = setTimeout(() => {
+        console.log('⏰ Délai de contre-jour écoulé, suppression de l\'écran noir');
+        
+        darkScreen.style.opacity = 0;
+        darkScreen.style.pointerEvents = "none";
+        clearInterval(torchInterval);
+        
+      }, BACKLIGHT_DELAY);
+    }
+  } 
+  
+  // Pas de détection claire
+  else {
+    clearBacklightDelay();
   }
   
   // Historique pour détecter les changements
@@ -298,10 +326,19 @@ function smartLightCheck() {
   setTimeout(smartLightCheck, 100);
 }
 
+function clearBacklightDelay() {
+  if (backlightDelayTimer) {
+    clearTimeout(backlightDelayTimer);
+    backlightDelayTimer = null;
+  }
+  backlightDetectionTime = null;
+}
+
 function lockOpacityUntilChange(referenceAnalysis) {
   lockOpacity = true;
   
   clearTimeout(lockTimer);
+  clearBacklightDelay(); // Réinitialiser aussi les délais de contre-jour
   
   const checkForChange = () => {
     const newAnalysis = analyzeSpatialDistribution();
@@ -315,10 +352,10 @@ function lockOpacityUntilChange(referenceAnalysis) {
     const centerChange = referenceAnalysis.centerBrightRatio - newAnalysis.centerBrightRatio;
     const overallChange = referenceAnalysis.brightRatio - newAnalysis.brightRatio;
     
-    if (centerChange > 15 || overallChange > 10) {
+    if (centerChange > 10 || overallChange > 8) { // Seuils plus sensibles
       lockOpacity = false;
       
-      // Restaurer l'écran sombre si nécessaire
+      // Restaurer l'écran sombre
       darkScreen.style.opacity = 1;
       darkScreen.style.pointerEvents = "auto";
       
@@ -332,7 +369,7 @@ function lockOpacityUntilChange(referenceAnalysis) {
     }
   };
   
-  lockTimer = setTimeout(checkForChange, 1000);
+  lockTimer = setTimeout(checkForChange, 500); // Délai réduit
 }
 
 function createTorchIcon() {
