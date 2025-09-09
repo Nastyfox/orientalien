@@ -232,7 +232,7 @@ function detectTorchVsBacklight(analysis, previousAnalysis) {
   }
   
   return {
-    detected: torchScore > backlightScore && torchScore > 35,
+    detected: torchScore > backlightScore && torchScore >= 35,
     type: torchScore > backlightScore ? 'torch' : 'backlight',
     torchScore,
     backlightScore,
