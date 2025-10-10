@@ -327,23 +327,35 @@ async function processEntireStaff() {
   return newSequence;
 }
 
-// Function to play the user's note sequence and record simultaneously
+let currentSequenceController = null; // Variable pour contrôler l'arrêt de la séquence
+
 async function playSequence(sequence, user) {
   console.log(sequence);
 
-  if (isPlaying) {
-	synth.triggerRelease(); // Arrêter toutes les notes en cours
+  // Arrêter la séquence en cours si elle joue
+  if (isPlaying && currentSequenceController) {
+    currentSequenceController.stop = true; // Signal d'arrêt
+    synth.triggerRelease(); // Arrêter la note en cours
     await new Promise((resolve) => setTimeout(resolve, 100)); // Petit délai pour nettoyer
   }
 
-  isPlaying = true; // Set the flag to indicate that a sequence is playing
+  isPlaying = true;
+  currentSequenceController = { stop: false }; // Nouveau contrôleur pour cette séquence
+  const localController = currentSequenceController; // Référence locale
 
   // Play each note in the sequence
   for (let i = 0; i < sequence.length; i++) {
+    // Vérifier si on doit arrêter cette séquence
+    if (localController.stop) {
+      console.log("Sequence stopped by new playback");
+      break;
+    }
+
     const correctNote = correctSequence[i].note.replace(" ", "");
     const correctNoteFlat = correctSequence[i].note.replace("#", "");
     const correctNoteText = correctNote.replace("#", "diese");
     const noteObj = sequence[i];
+    
     if (
       correctNote.includes("#") &&
       correctNoteFlat.includes(noteObj.note) &&
@@ -360,18 +372,22 @@ async function playSequence(sequence, user) {
       } else if (noteObj.note == "a5") {
         synth.triggerAttackRelease("a4", "8n");
       } else {
-        synth.triggerAttackRelease(noteObj.note, "4n"); // Play the note using Tone.js
+        synth.triggerAttackRelease(noteObj.note, "4n");
       }
     }
 
     // Wait for a shorter duration to ensure we don't miss the last note
     if (i < sequence.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Adjust this wait time as necessary
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
   }
 
-  isPlaying = false; // Reset the flag when the sequence is done
+  // Ne réinitialiser isPlaying que si c'est la dernière séquence lancée
+  if (currentSequenceController === localController) {
+    isPlaying = false;
+  }
 }
+
 
 function updateNoteClass(index, note) {
   const bars = document.querySelectorAll(".bar");
