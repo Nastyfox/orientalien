@@ -125,7 +125,7 @@ export async function completeChallenge(targetId) {
   const userTeam = await getUserTeam(db, phoneId);
   const userTeamRef = doc(db, "teams", userTeam); // Adjust as necessary to get the correct document
 
-  const userTeamDoc = await getDoc(doc(db, "teams", userTeam));
+  const userTeamDoc = await getDoc(userTeamRef);
   const completedChallenges = userTeamDoc.data().completedChallenges;
 
   if (!completedChallenges.includes(targetId)) {
@@ -136,8 +136,8 @@ export async function completeChallenge(targetId) {
   }
 
   try {
-    await updateDoc(userTeamDoc, {
-      completedChallenges: arrayUnion(targetId.toString()), // Use the imported arrayUnion function
+    await updateDoc(userTeamRef, {
+      completedChallenges: arrayUnion(targetId), // Use the imported arrayUnion function
       currentChallenge: null, // Clear the current challenge
     });
     console.log("Challenge completed and added to completedChallenges");
