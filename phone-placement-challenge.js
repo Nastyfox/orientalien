@@ -108,10 +108,10 @@ function createImages(imageUrls) {
   const numImages = imageUrls.length;
 
   // Calculate the height for each image in vh
-  const maxImageHeight = 50; // Each image takes up a fraction of the height based on the number of images
+  const maxImageHeight = 75; // Each image takes up a fraction of the height based on the number of images
 
   imageUrls.forEach((url, index) => {
-    let imageHeight = Math.min(0.25, Math.random()) * maxImageHeight;
+    let imageHeight = Math.min(0.4, Math.random()) * maxImageHeight;
     const imageHeightInPx = vhToPx(imageHeight);
     // Calculate dynamic positions using percentages (vw and vh) for responsiveness
     let leftPos = 0; // Randomize position in vw (20vw margin)
