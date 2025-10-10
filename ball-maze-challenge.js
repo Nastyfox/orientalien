@@ -821,7 +821,7 @@ let keyupListener;
 const moveSpeed = 0.005;
 
 function startEventListenerBallMovement() {
-  if (!deviceOrientationListener) {
+  if (!deviceOrientationListener && ball) {
     // Device orientation listener
     deviceOrientationListener = (event) => {
       const tiltX = event.beta; // Forward/backward tilt

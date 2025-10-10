@@ -497,6 +497,7 @@ export function initSubmitAndBack(submit = true, back = true) {
       submitButton.addEventListener("click", () => {
         const userAnswer = document.getElementById("answer").value.trim();
         const answerElement = document.getElementById("answer"); // Replace with your actual answer element
+		console.log("Click event");
         checkAnswer(userAnswer, answerElement, targetId);
       });
     } else {

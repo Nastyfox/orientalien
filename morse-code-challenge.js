@@ -99,10 +99,10 @@ export async function initializePageScripts(challengeId) {
     checkForMorseAlphabet(targetId, teamName).then((alphabetReady) => {
       console.log(alphabetReady);
       if (!alphabetReady) {
-        startMorseCode("E"); // Initial start
+        startMorseCode("CODE"); // Initial start
 
         morseCodeFunction = setInterval(() => {
-          startMorseCode("E"); // Repeat every minute (60,000 ms)
+          startMorseCode("CODE"); // Repeat every minute (60,000 ms)
         }, 30000);
       }
     });

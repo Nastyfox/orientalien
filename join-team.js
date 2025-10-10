@@ -19,6 +19,7 @@ import {
   getOrCreateUniqueId,
   loadPage,
   setHash,
+  enableFullscreen
 } from "./utils.js";
 
 // Your web app's Firebase configuration
@@ -493,21 +494,5 @@ async function checkUserAndLoadMap(phoneId) {
     }
   } catch (error) {
     console.error("Error checking user existence:", error);
-  }
-}
-
-// Function to enable fullscreen mode
-function enableFullscreen() {
-  console.log("ENABLE FULLSCREEN");
-  const docElement = document.documentElement;
-  if (docElement.requestFullscreen) {
-    docElement.requestFullscreen();
-  } else if (docElement.mozRequestFullScreen) {
-    docElement.mozRequestFullScreen(); // Firefox
-  } else if (docElement.webkitRequestFullscreen) {
-    console.log("HERE");
-    docElement.webkitRequestFullscreen(); // Chrome, Safari, Opera
-  } else if (docElement.msRequestFullscreen) {
-    docElement.msRequestFullscreen(); // IE/Edge
   }
 }

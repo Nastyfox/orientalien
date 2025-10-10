@@ -325,3 +325,19 @@ function closeNotes() {
 
   saveNotes();
 }
+
+// Function to enable fullscreen mode
+function enableFullscreen() {
+  console.log("ENABLE FULLSCREEN");
+  const docElement = document.documentElement;
+  if (docElement.requestFullscreen) {
+    docElement.requestFullscreen();
+  } else if (docElement.mozRequestFullScreen) {
+    docElement.mozRequestFullScreen(); // Firefox
+  } else if (docElement.webkitRequestFullscreen) {
+    console.log("HERE");
+    docElement.webkitRequestFullscreen(); // Chrome, Safari, Opera
+  } else if (docElement.msRequestFullscreen) {
+    docElement.msRequestFullscreen(); // IE/Edge
+  }
+}

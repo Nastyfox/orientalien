@@ -54,12 +54,12 @@ const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
 loadTeams();
 
 let rankingImages = [
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F1.png?alt=media&token=aa3b5ac3-0182-4c67-b4b4-06fde649bf7e",
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F2.png?alt=media&token=1e06d425-ebe4-4820-9961-03c97574e941",
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F3.png?alt=media&token=c2a7e6f7-1536-4fc0-9257-54c20f1c14b7",
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F4.png?alt=media&token=82f602aa-af13-482e-909f-048f775b3934",
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F5.png?alt=media&token=82521bc0-db98-42a9-9748-50b828ae805f",
-  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2F6.png?alt=media&token=fe1bb26c-9730-413d-9684-976c63e5b907",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank1.png?alt=media&token=d4298f10-2090-4e45-8b4c-ff268b395df6",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank2.png?alt=media&token=3401a092-499e-4f38-ab18-c2b939b9d696",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank3.png?alt=media&token=5bc47812-f4e0-4d68-b53c-6e97d6719065",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank4.png?alt=media&token=a3bea005-638c-4b9d-ab3b-9a7f37b4c843",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank5.png?alt=media&token=001820d6-eb15-4ab6-880b-3796888c0716",
+  "https://firebasestorage.googleapis.com/v0/b/web-compass-df2fe.appspot.com/o/images%2Frank6.png?alt=media&token=9f1b635f-ab14-457d-86e2-39e28fdc8a5c",
 ];
 
 let bestTime = null;

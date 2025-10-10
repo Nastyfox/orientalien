@@ -17,7 +17,8 @@ import {
   getOrCreateUniqueId,
   loadPage,
   setHash,
-  initializeNotes
+  initializeNotes,
+  enableFullscreen
 } from "./utils.js";
 import * as L from "https://unpkg.com/leaflet@1.7.1/dist/leaflet-src.esm.js";
 
@@ -481,6 +482,7 @@ async function loadTeamChallenges() {
           // Add click event listener to the pop-up content directly
           popupContent.addEventListener("click", () => {
             console.log(challenge.challengeType);
+			enableFullscreen();
             // Check if the challenge type is ball-maze-challenge
             if (challenge.challengeType === "ball-maze-challenge") {
               // Request permission if needed (for iOS devices)
