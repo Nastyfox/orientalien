@@ -137,7 +137,7 @@ export async function completeChallenge(targetId) {
 
   try {
     await updateDoc(userTeamDoc, {
-      completedChallenges: arrayUnion(targetId), // Use the imported arrayUnion function
+      completedChallenges: arrayUnion(targetId.toString()), // Use the imported arrayUnion function
       currentChallenge: null, // Clear the current challenge
     });
     console.log("Challenge completed and added to completedChallenges");
