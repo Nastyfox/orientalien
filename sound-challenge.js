@@ -327,28 +327,40 @@ async function processEntireStaff() {
   return newSequence;
 }
 
-let currentSequenceController = null; // Variable pour contrôler l'arrêt de la séquence
+let currentSequenceController = null;
+let currentTimeout = null; // Pour stocker le timeout en cours
 
 async function playSequence(sequence, user) {
   console.log(sequence);
 
-  // Arrêter la séquence en cours si elle joue
-  if (isPlaying && currentSequenceController) {
+  // Arrêter complètement la séquence en cours
+  if (currentSequenceController) {
     currentSequenceController.stop = true; // Signal d'arrêt
-    synth.triggerRelease(); // Arrêter la note en cours
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Petit délai pour nettoyer
+    
+    // Annuler le timeout en cours
+    if (currentTimeout) {
+      clearTimeout(currentTimeout);
+      currentTimeout = null;
+    }
+    
+    // Arrêter toutes les notes
+    synth.triggerRelease();
+    
+    // Attendre que la séquence précédente s'arrête complètement
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
   isPlaying = true;
-  currentSequenceController = { stop: false }; // Nouveau contrôleur pour cette séquence
-  const localController = currentSequenceController; // Référence locale
+  currentSequenceController = { stop: false };
+  const localController = currentSequenceController;
 
   // Play each note in the sequence
   for (let i = 0; i < sequence.length; i++) {
     // Vérifier si on doit arrêter cette séquence
     if (localController.stop) {
       console.log("Sequence stopped by new playback");
-      break;
+      isPlaying = false;
+      return; // Sortir complètement de la fonction
     }
 
     const correctNote = correctSequence[i].note.replace(" ", "");
@@ -376,17 +388,24 @@ async function playSequence(sequence, user) {
       }
     }
 
-    // Wait for a shorter duration to ensure we don't miss the last note
+    // Wait for a shorter duration with cancellable timeout
     if (i < sequence.length - 1) {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => {
+        currentTimeout = setTimeout(() => {
+          currentTimeout = null;
+          resolve();
+        }, 1000);
+      });
     }
   }
 
-  // Ne réinitialiser isPlaying que si c'est la dernière séquence lancée
+  // Réinitialiser uniquement si c'est toujours la séquence active
   if (currentSequenceController === localController) {
     isPlaying = false;
+    currentSequenceController = null;
   }
 }
+
 
 
 function updateNoteClass(index, note) {
