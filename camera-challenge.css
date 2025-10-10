@@ -69,7 +69,8 @@ video {
 
 .close-btn {
   position: absolute;
-  top: 1vw;
+  top: 1vh;
+  left: 1vw;
   font-size: 24px;
   cursor: pointer;
   color: white;
