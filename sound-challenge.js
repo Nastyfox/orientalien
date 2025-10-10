@@ -332,8 +332,8 @@ async function playSequence(sequence, user) {
   console.log(sequence);
 
   if (isPlaying) {
-    console.log("Sequence is already playing. Please wait.");
-    return; // Exit if the sequence is already playing
+	synth.releaseAll(); // Arrêter toutes les notes en cours
+    await new Promise((resolve) => setTimeout(resolve, 100)); // Petit délai pour nettoyer
   }
 
   isPlaying = true; // Set the flag to indicate that a sequence is playing
