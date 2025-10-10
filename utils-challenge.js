@@ -270,12 +270,14 @@ export async function updateTeamArray(teamName, array, index) {
   }
 }
 
+userTeam = null;
+
 // Function to check the user's answer
 export async function checkAnswer(userAnswer, answerElement, targetId) {
   const resultDiv = document.getElementById("result");
   let correctAnswer = false;
 
-  const userTeam = await getUserTeam(db, phoneId);
+  userTeam = await getUserTeam(db, phoneId);
   const challengeDoc = await getDoc(doc(db, "challenges", targetId));
   const challengeDocData = challengeDoc.data();
 
@@ -303,7 +305,6 @@ export async function checkAnswer(userAnswer, answerElement, targetId) {
 // Dans utils-challenge.js
 export function listenChallengeChanges(teamName, database, target) {
   const challengeDoc = doc(database, "challenges", target);
-  const userTeam = await getUserTeam(db, phoneId);
 
   return onSnapshot(challengeDoc, async (docSnapshot) => {
 	console.log("On Snapshot challenge");
