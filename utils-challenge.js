@@ -305,6 +305,7 @@ export function listenChallengeChanges(teamName, database, target) {
   const challengeDoc = doc(database, "challenges", target);
 
   return onSnapshot(challengeDoc, async (docSnapshot) => {
+	console.log("On Snapshot challenge");
     const teamDataChallenge = docSnapshot.data()?.[teamName];
     if (teamDataChallenge) {
       if (teamDataChallenge[0].challengeEnded) {
