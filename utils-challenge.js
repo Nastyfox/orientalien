@@ -314,11 +314,12 @@ export function listenChallengeChanges(teamName, database, target) {
         await triggerFireworks();
         stopFireworks();
 
-        // Clear currentChallenge and add to completedChallenges
-        await completeChallenge(targetId);
-		
 		let array = { challengeEnded: false };
 		await updateTeamArray(userTeam, array, 0);
+		console.log("Challenge Ended");
+
+        // Clear currentChallenge and add to completedChallenges
+        await completeChallenge(targetId);
       }
     }
   });
