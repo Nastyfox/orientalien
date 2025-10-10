@@ -303,6 +303,7 @@ export async function checkAnswer(userAnswer, answerElement, targetId) {
 // Dans utils-challenge.js
 export function listenChallengeChanges(teamName, database, target) {
   const challengeDoc = doc(database, "challenges", target);
+  const userTeam = await getUserTeam(db, phoneId);
 
   return onSnapshot(challengeDoc, async (docSnapshot) => {
 	console.log("On Snapshot challenge");
@@ -314,6 +315,9 @@ export function listenChallengeChanges(teamName, database, target) {
 
         // Clear currentChallenge and add to completedChallenges
         await completeChallenge(targetId);
+		
+		let array = { challengeEnded: false };
+		await updateTeamArray(userTeam, array, 0);
       }
     }
   });
