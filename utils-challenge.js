@@ -145,7 +145,7 @@ export async function completeChallenge(targetId) {
     console.error("Error updating challenge:", error);
   }
 
-  //goBack();
+  goBack();
 }
 
 // Function to go back to the map
