@@ -332,7 +332,7 @@ async function playSequence(sequence, user) {
   console.log(sequence);
 
   if (isPlaying) {
-	synth.releaseAll(); // Arrêter toutes les notes en cours
+	synth.triggerRelease(); // Arrêter toutes les notes en cours
     await new Promise((resolve) => setTimeout(resolve, 100)); // Petit délai pour nettoyer
   }
 
