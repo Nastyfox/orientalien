@@ -327,7 +327,7 @@ function closeNotes() {
 }
 
 // Function to enable fullscreen mode
-function enableFullscreen() {
+export function enableFullscreen() {
   console.log("ENABLE FULLSCREEN");
   const docElement = document.documentElement;
   if (docElement.requestFullscreen) {
