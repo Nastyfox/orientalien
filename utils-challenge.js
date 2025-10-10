@@ -270,7 +270,7 @@ export async function updateTeamArray(teamName, array, index) {
   }
 }
 
-userTeam = null;
+let userTeam = null;
 
 // Function to check the user's answer
 export async function checkAnswer(userAnswer, answerElement, targetId) {
