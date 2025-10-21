@@ -109,12 +109,14 @@ async function loadTeams() {
           messageContainer.style.display = "none";
         }
       });
+	  
+	  userTeamName = await getUserTeam(db, phoneId);
 
       // Attach record message functionality
       recordBtn.addEventListener("click", (event) => {
         event.stopPropagation(); // Prevent clicking on the team card itself
         if (recordBtn.textContent === "Record Message") {
-          startRecordingForTeam(team.name, recordBtn);
+          startRecordingForTeam(userTeamName, recordBtn);
         } else {
           stopRecording(recordBtn);
         }
@@ -269,6 +271,8 @@ async function uploadVoiceMessage(blob, teamName, isAdmin) {
     );
     await uploadBytes(storageRef, blob);
     const downloadURL = await getDownloadURL(storageRef);
+	
+	console.log(teamName);
 
     // Now save the metadata including the download URL and admin status in Firestore
     await addDoc(collection(db, "voice-messages"), {
