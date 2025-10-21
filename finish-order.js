@@ -180,6 +180,7 @@ async function recordTeamTime(teamName) {
   } else {
     diffTime = timeToSeconds(bestTime) - timeToSeconds(teamTime);
 
+	console.log(teamName + " " + diffTime);
     await addPoints(teamName, diffTime);
   }
 

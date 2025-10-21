@@ -131,6 +131,7 @@ async function loadTeams() {
         const points = parseInt(pointsInput, 10);
         if (!isNaN(points)) {
           await addPoints(team.id, points);
+		  alert("Points added successfully!");
         }
       });
 
