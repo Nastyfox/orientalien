@@ -325,7 +325,7 @@ async function initializeTeam() {
       }
 
       // Vérifier si c'est le tout début (pas de currentChallenge et pas de completedChallenges)
-      const completedChallenges = teamData.completedChallenges || [];
+	  const hasCompletedChallenges = Array.isArray(completedChallenges) && completedChallenges.length > 0;
       const hasCurrentChallenge = teamData.currentChallenge;
       const hasCompletedChallenges = completedChallenges.length > 0;
 
