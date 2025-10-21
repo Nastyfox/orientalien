@@ -317,7 +317,13 @@ async function initializeTeam() {
         console.log("No starting challenge assigned, assigning now...");
         await assignStartingChallengesToTeams();
       }
+	}
 
+	// Get the team document from Firestore
+    const teamDoc = await getDoc(doc(db, "teams", userTeam));
+	
+	if (teamDoc.exists()) {
+      const teamData = teamDoc.data();
       // If currentChallenge is set, call loadChallenges to display it
       if (teamData.currentChallenge) {
         console.log("Loading challenges for the team...");
