@@ -111,6 +111,20 @@ function extractCoordinates(inputString) {
 
 async function checkCoordinates() {
   updateChallengeQuestion();
+  
+  // Si une nouvelle coordonnée a été sauvegardée, mettre à jour Firebase
+  if (newCoordinateSaved && displayCoordinatesElement) {
+    const updatedCoordinates = displayCoordinatesElement.textContent.trim();
+    console.log("Updating Firebase with new coordinates:", updatedCoordinates);
+    
+    // Mettre à jour Firebase avec les nouvelles coordonnées
+    const array = {
+      savedCoordinates: updatedCoordinates,
+    };
+    
+    await updateTeamArray(teamName, array, 0);
+    console.log("Firebase updated successfully");
+  }
   /*
   await checkSavedCoordinates();
   await checkAllCoordinatesDone();
