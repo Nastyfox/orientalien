@@ -256,37 +256,51 @@ const onDrag = (e) => {
       // Zoom uniquement
       const scaleDiff = currentDistance / initialDistance;
       
-      // Calculer le nouveau scale avec la logique originale
-      newScale = Math.max(
-        0.5,
-        Math.min(scale + (scaleDiff - 1) * zoomFactor, 3)
-      );
+      // Calculer le nouveau scale - CORRECTION ICI
+      let calculatedScale = scale + (scaleDiff - 1) * zoomFactor;
+      
+      // S'assurer que le scale reste toujours positif
+      calculatedScale = Math.max(0.1, calculatedScale);
+      
+      // Appliquer les limites générales (0.5x à 3x)
+      newScale = Math.max(0.5, Math.min(calculatedScale, 3));
 
-      // Obtenir les dimensions actuelles de l'image
+      // Obtenir les dimensions actuelles de l'image avec gestion des erreurs
       const imgRect = img.getBoundingClientRect();
-      
-      // Calculer la hauteur que l'image aurait avec le nouveau scale
       const currentScaleValue = getCurrentScale(img);
-      const baseHeight = imgRect.height / currentScaleValue;
-      const projectedHeight = baseHeight * newScale;
       
-      // Définir les limites de hauteur (25% et 75% de la hauteur de l'écran)
-      const minHeight = screenHeight * 0.25;
-      const maxHeight = screenHeight * 0.75;
-      
-      // Ajuster le scale si la hauteur projetée dépasse les limites
-      if (projectedHeight < minHeight) {
-        newScale = minHeight / baseHeight;
-      } else if (projectedHeight > maxHeight) {
-        newScale = maxHeight / baseHeight;
+      // Protection contre division par zéro ou valeurs invalides
+      if (currentScaleValue > 0 && imgRect.height > 0 && imgRect.width > 0) {
+        const baseHeight = imgRect.height / currentScaleValue;
+        const baseWidth = imgRect.width / currentScaleValue;
+        
+        // Vérifier que les dimensions de base sont valides
+        if (baseHeight > 0 && baseWidth > 0) {
+          const projectedHeight = baseHeight * newScale;
+          
+          // Définir les limites de hauteur (25% et 75% de la hauteur de l'écran)
+          const minHeight = screenHeight * 0.25;
+          const maxHeight = screenHeight * 0.75;
+          
+          // Ajuster le scale si la hauteur projetée dépasse les limites
+          if (projectedHeight < minHeight) {
+            newScale = minHeight / baseHeight;
+          } else if (projectedHeight > maxHeight) {
+            newScale = maxHeight / baseHeight;
+          }
+          
+          // Limite le zoom pour ne pas dépasser la largeur de l'écran
+          const projectedWidth = baseWidth * newScale;
+          
+          if (projectedWidth > screenWidth) {
+            newScale = Math.min(newScale, (screenWidth * 0.95) / baseWidth);
+          }
+        }
       }
       
-      // Limite le zoom pour ne pas dépasser la largeur de l'écran
-      const baseWidth = imgRect.width / currentScaleValue;
-      const projectedWidth = baseWidth * newScale;
-      
-      if (projectedWidth > screenWidth) {
-        newScale = Math.min(newScale, screenWidth / baseWidth);
+      // Vérification finale: s'assurer que newScale est valide
+      if (isNaN(newScale) || newScale <= 0) {
+        newScale = scale; // Garder l'échelle précédente en cas d'erreur
       }
 
       newRotation = initialRotation; // La rotation ne change pas
@@ -306,6 +320,7 @@ const endDrag = () => {
   isZooming = false;
   gestureType = null; // Réinitialiser le type de geste
 };
+
 
 
 
