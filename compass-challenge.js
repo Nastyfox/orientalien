@@ -18,7 +18,6 @@ import {
   doc,
   updateDoc,
   arrayUnion,
-  onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
@@ -76,8 +75,9 @@ export async function initializePageScripts(challengeId) {
     await loadCorrectCoordinates();
     correctCoordinates = extractCoordinates(stringCorrectCoordinates);
 
-    await checkSavedCoordinates();
-
+	const initialCoordinates = await checkSavedCoordinates();
+	console.log("Initial coordinates loaded:", initialCoordinates);
+ 
     initCombinationLock();
     getEnterButton().addEventListener("click", () => {
       checkCombination(targetId);
@@ -110,7 +110,10 @@ function extractCoordinates(inputString) {
 
 async function checkCoordinates() {
   updateChallengeQuestion();
+  /*
+  await checkSavedCoordinates();
   await checkAllCoordinatesDone();
+  */
 }
 
 function updateChallengeQuestion() {
@@ -209,54 +212,93 @@ async function checkAllCoordinatesDone() {
   }
 }
 
-let coordinatesListener = null; // Variable pour stocker le listener
-
 async function checkSavedCoordinates() {
-  let array = [];
+  console.log("Target ID:", targetId);
+  console.log("Team Name:", teamName);
 
-  displayCoordinatesElement = document.getElementById("challenge");
-
-  const docRef = doc(db, "challenges", targetId);
-
-  // Si un listener existe déjà, le détacher
-  if (coordinatesListener) {
-    coordinatesListener();
+  // Vérifier que les variables nécessaires sont définies
+  if (!targetId || !teamName) {
+    console.error("targetId or teamName not defined yet");
+    return;
   }
 
-  // Créer un listener en temps réel avec onSnapshot
-  coordinatesListener = onSnapshot(docRef, async (docSnapshot) => {
-    if (docSnapshot.exists()) {
-      const data = docSnapshot.data();
-      const teamData = data[teamName];
+  displayCoordinatesElement = document.getElementById("challenge");
+  
+  if (!displayCoordinatesElement) {
+    console.error("Challenge element not found");
+    return;
+  }
 
-      if (data[teamName]) {
-        console.log(newCoordinateSaved);
-        if (!newCoordinateSaved) {
-          displayCoordinatesElement.innerHTML = `<p>${teamData[0].savedCoordinates}</p>`;
+  const challengeRef = doc(db, "challenges", targetId);
+
+  return new Promise((resolve, reject) => {
+    try {
+      let initialResolved = false;
+
+      unsubscribeCoordinatesSnapshot = onSnapshot(challengeRef, async (docSnapshot) => {
+        if (docSnapshot.exists()) {
+          const challengeData = docSnapshot.data();
+          console.log("Challenge data:", challengeData);
+
+          const teamArray = challengeData[teamName] || [];
+          console.log("Team Array:", teamArray);
+
+          let array = {};
+
+          // Ensure that the array exists and is not empty before accessing the first element
+          if (teamArray.length > 0) {
+            const savedCoordinates = teamArray[0]?.savedCoordinates || stringStartCoordinates;
+            console.log("Saved Coordinates Value:", savedCoordinates);
+
+            // Resolve the promise with the initial value on the first snapshot
+            if (!initialResolved) {
+              initialResolved = true;
+              resolve(savedCoordinates);
+            }
+
+            // Update display if not a new coordinate being saved
+            if (!newCoordinateSaved) {
+              displayCoordinatesElement.innerHTML = `<p>${savedCoordinates}</p>`;
+            }
+
+            array = {
+              savedCoordinates: displayCoordinatesElement.textContent.trim(),
+            };
+
+            await checkAllCoordinatesDone();
+            await updateTeamArray(teamName, array, 0);
+
+            newCoordinateSaved = false;
+          } else {
+            console.log("Team array is empty or not found.");
+            
+            // Use start coordinates if team array is empty
+            array = {
+              savedCoordinates: stringStartCoordinates,
+            };
+            displayCoordinatesElement.innerHTML = `<p>${stringStartCoordinates}</p>`;
+
+            await updateTeamArray(teamName, array, 0);
+
+            if (!initialResolved) {
+              initialResolved = true;
+              resolve(stringStartCoordinates);
+            }
+          }
+        } else {
+          console.log("Document does not exist.");
+          if (!initialResolved) {
+            initialResolved = true;
+            resolve(stringStartCoordinates);
+          }
         }
-
-        array = {
-          savedCoordinates: displayCoordinatesElement.textContent.trim(),
-        };
-      } else {
-        array = {
-          savedCoordinates: stringStartCoordinates,
-        };
-      }
-    } else {
-      array = {
-        savedCoordinates: stringStartCoordinates,
-      };
+      }, (error) => {
+        console.error("Error listening to coordinates:", error);
+        reject(error);
+      });
+    } catch (error) {
+      console.error("Error setting up coordinates listener:", error);
+      reject(error);
     }
-
-    await checkAllCoordinatesDone();
-    await updateTeamArray(teamName, array, 0);
-
-    newCoordinateSaved = false;
-  }, (error) => {
-    console.error("Error listening to coordinates:", error);
   });
-
-  // Retourner la fonction de désinscription pour pouvoir arrêter le listener plus tard
-  return coordinatesListener;
 }
