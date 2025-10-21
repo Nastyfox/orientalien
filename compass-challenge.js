@@ -209,6 +209,8 @@ async function checkAllCoordinatesDone() {
   }
 }
 
+let coordinatesListener = null; // Variable pour stocker le listener
+
 async function checkSavedCoordinates() {
   let array = [];
 
@@ -216,32 +218,45 @@ async function checkSavedCoordinates() {
 
   const docRef = doc(db, "challenges", targetId);
 
-  // Fetch the document
-  const docSnapshot = await getDoc(docRef);
+  // Si un listener existe déjà, le détacher
+  if (coordinatesListener) {
+    coordinatesListener();
+  }
 
-  if (docSnapshot.exists()) {
-    const data = docSnapshot.data();
-    const teamData = data[teamName];
+  // Créer un listener en temps réel avec onSnapshot
+  coordinatesListener = onSnapshot(docRef, async (docSnapshot) => {
+    if (docSnapshot.exists()) {
+      const data = docSnapshot.data();
+      const teamData = data[teamName];
 
-    if (data[teamName]) {
-      console.log(newCoordinateSaved);
-      if (!newCoordinateSaved) {
-        displayCoordinatesElement.innerHTML = `<p>${teamData[0].savedCoordinates}</p>`;
+      if (data[teamName]) {
+        console.log(newCoordinateSaved);
+        if (!newCoordinateSaved) {
+          displayCoordinatesElement.innerHTML = `<p>${teamData[0].savedCoordinates}</p>`;
+        }
+
+        array = {
+          savedCoordinates: displayCoordinatesElement.textContent.trim(),
+        };
+      } else {
+        array = {
+          savedCoordinates: stringStartCoordinates,
+        };
       }
-
-      array = {
-        savedCoordinates: displayCoordinatesElement.textContent.trim(),
-      };
     } else {
       array = {
         savedCoordinates: stringStartCoordinates,
       };
     }
-  }
 
-  await checkAllCoordinatesDone();
+    await checkAllCoordinatesDone();
+    await updateTeamArray(teamName, array, 0);
 
-  await updateTeamArray(teamName, array, 0);
+    newCoordinateSaved = false;
+  }, (error) => {
+    console.error("Error listening to coordinates:", error);
+  });
 
-  newCoordinateSaved = false;
+  // Retourner la fonction de désinscription pour pouvoir arrêter le listener plus tard
+  return coordinatesListener;
 }

@@ -210,9 +210,9 @@ const morseCode = {
 
 const dotTime = 200; // Vibration time for dot
 const dashTime = 600; // Vibration time for dash
-const letterPause = 1200; // Pause between letters
-const wordPause = 2800; // Pause between words
-const betweenSignalPause = 400; // Pause between dots and dashes in the same letter
+const letterPause = 1500; // Pause between letters
+const wordPause = 3000; // Pause between words
+const betweenSignalPause = 500; // Pause between dots and dashes in the same letter
 
 // Function to convert text to Morse code vibration pattern
 function convertTextToMorse(text) {
