@@ -37,7 +37,7 @@ export function initializePageScripts() {
   }
 
   // Initialize the map and set the view to a default location
-  map = L.map("map").setView([51.505, -0.09], 13); // Default location (London)
+  map = L.map("map").setView([47.10281017395628, 0.6878686477110221], 18);
 
   // Add a tile layer from OpenStreetMap
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -180,7 +180,6 @@ const teamMarkers = new Map();
 async function loadTeamMemberPositions() {
   try {
     const querySnapshot = await getDocs(collection(db, "teams"));
-    console.log("Team positions loaded");
 
     // Remove existing markers
     teamMarkers.forEach((marker) => {

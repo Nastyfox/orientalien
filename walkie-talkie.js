@@ -169,6 +169,8 @@ async function loadAdminMessagesForTeam(teamName) {
   console.log("Load admin messages");
   const messageContainer = document.getElementById("message-container");
   messageContainer.innerHTML = ""; // Clear previous messages
+  
+  console.log(teamName);
 
   // Query to get only messages sent by the admin to the specific team
   const q = query(
