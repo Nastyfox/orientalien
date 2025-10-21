@@ -231,25 +231,38 @@ const onDrag = (e) => {
     const currentDistance = getDistanceBetweenTouches(touch1, touch2);
     const scaleDiff = currentDistance / initialDistance;
     
-    // Obtenir la hauteur actuelle de l'image
-    const imgRect = img.getBoundingClientRect();
-    const currentScale = getCurrentScale(img);
-    const baseHeight = imgRect.height / currentScale; // Hauteur de base sans scale
-    const baseWidth = imgRect.width / currentScale; // Largeur de base sans scale
-
-    // Calculer les limites de scale basées sur la hauteur de l'écran
-    const minScale = (screenHeight * 0.25) / baseHeight; // 25% de la hauteur d'écran
-    const maxScale = (screenHeight * 0.75) / baseHeight; // 75% de la hauteur d'écran
-
     // Calculer le nouveau scale avec la logique originale
-    let newScale = Math.max(
-      minScale,
-      Math.min(scale + (scaleDiff - 1) * zoomFactor, maxScale)
-    );
+    let newScale = scale + (scaleDiff - 1) * zoomFactor;
 
-    // Limite additionnelle pour la largeur (pour éviter débordement horizontal)
-    if (baseWidth * newScale > screenWidth) {
-      newScale = Math.min(newScale, screenWidth / baseWidth);
+    // Appliquer le scale temporairement pour obtenir les dimensions projetées
+    img.style.transform = `rotate(${newRotation}deg) scale(${newScale})`;
+    const imgRect = img.getBoundingClientRect();
+    
+    // Vérifier les limites basées sur la hauteur de l'écran
+    const projectedHeight = imgRect.height;
+    const minHeight = screenHeight * 0.25; // 25% de la hauteur d'écran
+    const maxHeight = screenHeight * 0.75; // 75% de la hauteur d'écran
+    
+    // Si la hauteur projetée dépasse les limites, ajuster le scale
+    if (projectedHeight < minHeight) {
+      // Recalculer le scale pour atteindre exactement minHeight
+      const currentScale = getCurrentScale(img);
+      const baseHeight = projectedHeight / currentScale;
+      newScale = minHeight / baseHeight;
+    } else if (projectedHeight > maxHeight) {
+      // Recalculer le scale pour ne pas dépasser maxHeight
+      const currentScale = getCurrentScale(img);
+      const baseHeight = projectedHeight / currentScale;
+      newScale = maxHeight / baseHeight;
+    }
+    
+    // Limite additionnelle pour la largeur
+    img.style.transform = `rotate(${newRotation}deg) scale(${newScale})`;
+    const finalRect = img.getBoundingClientRect();
+    if (finalRect.width > screenWidth) {
+      const currentScale = getCurrentScale(img);
+      const baseWidth = finalRect.width / currentScale;
+      newScale = (screenWidth / baseWidth) * 0.95; // 95% pour garder une marge
     }
 
     scale = newScale; // Met à jour l'échelle actuelle
@@ -259,6 +272,7 @@ const onDrag = (e) => {
     setTimeout(() => keepImageInsideScreen(img), 0);
   }
 };
+
 
 
   const endDrag = () => {
