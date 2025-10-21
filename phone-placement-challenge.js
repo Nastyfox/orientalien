@@ -232,21 +232,25 @@ function makeDraggable(img) {
       const scaleDiff = currentDistance / initialDistance;
       let newScale = scale * scaleDiff; // Calcul de la nouvelle échelle
 
-      // Limite l'échelle entre 0.5x et 3x
-      newScale = Math.max(
-        0.5,
-        Math.min(scale + (scaleDiff - 1) * zoomFactor, 3)
-      );
+      // Appliquer le facteur de zoom pour réduire la sensibilité
+      newScale = scale + (scaleDiff - 1) * zoomFactor;
 
-      // Limite le zoom pour ne pas dépasser la taille de l'écran
+      // Obtenir la hauteur actuelle de l'image (sans scale)
       const imgRect = img.getBoundingClientRect();
+      const currentScale = getCurrentScale(img);
+      const baseHeight = imgRect.height / currentScale; // Hauteur de base sans scale
 
-      // Si l'image est plus grande que l'écran après le zoom, on ajuste l'échelle
-      if (imgRect.width * newScale > screenWidth) {
-        newScale = screenWidth / imgRect.width;
-      }
-      if (imgRect.height * newScale > screenHeight) {
-        newScale = screenHeight / imgRect.height;
+      // Calculer les limites de scale basées sur la hauteur de l'écran
+      const minScale = (screenHeight * 0.25) / baseHeight; // 25% de la hauteur d'écran
+      const maxScale = (screenHeight * 0.75) / baseHeight; // 75% de la hauteur d'écran
+
+      // Limiter le scale entre les limites calculées
+      newScale = Math.max(minScale, Math.min(newScale, maxScale));
+
+      // Limite additionnelle pour la largeur (optionnel, pour éviter débordement horizontal)
+      const baseWidth = imgRect.width / currentScale;
+      if (baseWidth * newScale > screenWidth) {
+        newScale = Math.min(newScale, screenWidth / baseWidth);
       }
 
       scale = newScale; // Met à jour l'échelle actuelle
@@ -314,6 +318,7 @@ function makeDraggable(img) {
   window.addEventListener("mousemove", onDrag);
   window.addEventListener("mouseup", endDrag);
 }
+
 
 function keepImageInsideScreen(img) {
   const imgRect = img.getBoundingClientRect();
