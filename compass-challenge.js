@@ -213,6 +213,8 @@ async function checkAllCoordinatesDone() {
   }
 }
 
+let unsubscribeCoordinatesSnapshot = null;
+
 async function checkSavedCoordinates() {
   console.log("Target ID:", targetId);
   console.log("Team Name:", teamName);
