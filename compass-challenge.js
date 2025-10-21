@@ -18,6 +18,7 @@ import {
   doc,
   updateDoc,
   arrayUnion,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js";
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
@@ -109,7 +110,6 @@ function extractCoordinates(inputString) {
 
 async function checkCoordinates() {
   updateChallengeQuestion();
-  await checkSavedCoordinates();
   await checkAllCoordinatesDone();
 }
 
