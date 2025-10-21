@@ -191,11 +191,8 @@ async function loadTeamMemberPositions() {
     // Loop through each team and update the map
     querySnapshot.forEach((doc) => {
       const teamData = doc.data();
-      console.log(teamData);
       const { location, color } = teamData; // Get location & color
       
-      console.log(color);
-
       if (location) {
         const teamName = teamData.name; // Use document ID as team name
 
