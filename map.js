@@ -382,6 +382,7 @@ async function assignStartingChallengesToTeams() {
           doc(db, "teams", team.id),
           {
             startingChallenge: randomChallenge.id, // Save the challenge ID
+			currentChallenge: randomChallenge.id,
           },
           { merge: true }
         );
@@ -394,14 +395,6 @@ async function assignStartingChallengesToTeams() {
       }
     } else {
       console.log(`Team ${team.id} already has a starting challenge.`);
-	  // Assign this challenge to the team
-      await setDoc(
-		doc(db, "teams", team.id),
-          {
-            currentChallenge: team.startingChallenge, // Save the challenge ID
-          },
-          { merge: true }
-      );
     }
   }
 }
