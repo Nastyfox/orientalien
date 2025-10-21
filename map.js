@@ -306,34 +306,47 @@ async function initializeTeam() {
   if (userTeam) {
     console.log("User's team:", userTeam);
 
-	let teamDoc = null;
-	let teamData = null;
-
     // Get the team document from Firestore
-    teamDoc = await getDoc(doc(db, "teams", userTeam));
+    const teamDoc = await getDoc(doc(db, "teams", userTeam));
 
     if (teamDoc.exists()) {
-      teamData = teamDoc.data();
+      const teamData = teamDoc.data();
 
       // Check if startingChallenge is assigned, if not, call assignStartingChallengesToTeams
       if (!teamData.startingChallenge) {
         console.log("No starting challenge assigned, assigning now...");
         await assignStartingChallengesToTeams();
+        
+        // Recharger les données de l'équipe après l'assignation
+        const updatedTeamDoc = await getDoc(doc(db, "teams", userTeam));
+        if (updatedTeamDoc.exists()) {
+          teamData.startingChallenge = updatedTeamDoc.data().startingChallenge;
+        }
       }
-	}
 
-	// Get the team document from Firestore
-    teamDoc = await getDoc(doc(db, "teams", userTeam));
-	
-	if (teamDoc.exists()) {
-      teamData = teamDoc.data();
+      // Vérifier si c'est le tout début (pas de currentChallenge et pas de completedChallenges)
+      const completedChallenges = teamData.completedChallenges || [];
+      const hasCurrentChallenge = teamData.currentChallenge;
+      const hasCompletedChallenges = completedChallenges.length > 0;
+
+      // Si c'est le tout début, mettre startingChallenge en currentChallenge
+      if (!hasCurrentChallenge && !hasCompletedChallenges && teamData.startingChallenge) {
+        console.log("First time - setting startingChallenge as currentChallenge:", teamData.startingChallenge);
+        
+        const teamRef = doc(db, "teams", userTeam);
+        await updateDoc(teamRef, {
+          currentChallenge: teamData.startingChallenge
+        });
+        
+        console.log("currentChallenge set to:", teamData.startingChallenge);
+        await loadTeamChallenges();
+      }
       // If currentChallenge is set, call loadChallenges to display it
-      if (teamData.currentChallenge) {
+      else if (hasCurrentChallenge) {
         console.log("Loading challenges for the team...");
         await loadTeamChallenges();
       } else {
         console.log("No current challenge assigned yet.");
-        //await unlockClosestChallenge();
         await unlockNextChallenge();
         await loadTeamChallenges();
       }
@@ -344,6 +357,7 @@ async function initializeTeam() {
     console.error("No team found for this user.");
   }
 }
+
 
 async function assignStartingChallengesToTeams() {
   // Fetch all available challenges
@@ -391,7 +405,6 @@ async function assignStartingChallengesToTeams() {
           doc(db, "teams", team.id),
           {
             startingChallenge: randomChallenge.id, // Save the challenge ID
-			currentChallenge: randomChallenge.id,
           },
           { merge: true }
         );
