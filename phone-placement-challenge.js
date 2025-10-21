@@ -200,66 +200,66 @@ function makeDraggable(img) {
 
   const zoomFactor = 0.05; // Réduit la sensibilité du zoom
 
-  const onDrag = (e) => {
-    if (isDragging) {
-      const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
-      const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
+const onDrag = (e) => {
+  if (isDragging) {
+    const clientX = e.type === "touchmove" ? e.touches[0].clientX : e.clientX;
+    const clientY = e.type === "touchmove" ? e.touches[0].clientY : e.clientY;
 
-      const dx = clientX - startX;
-      const dy = clientY - startY;
+    const dx = clientX - startX;
+    const dy = clientY - startY;
 
-      let newX = initialX + dx;
-      let newY = initialY + dy;
+    let newX = initialX + dx;
+    let newY = initialY + dy;
 
-      img.style.left = `${newX}px`;
-      img.style.top = `${newY}px`;
+    img.style.left = `${newX}px`;
+    img.style.top = `${newY}px`;
 
-      keepImageInsideScreen(img);
-    } else if (
-      (isRotating || isZooming) &&
-      e.touches &&
-      e.touches.length === 2
-    ) {
-      const [touch1, touch2] = e.touches;
+    keepImageInsideScreen(img);
+  } else if (
+    (isRotating || isZooming) &&
+    e.touches &&
+    e.touches.length === 2
+  ) {
+    const [touch1, touch2] = e.touches;
 
-      // Rotation
-      const currentAngle = getAngleBetweenTouches(touch1, touch2);
-      const angleDiff = currentAngle - initialAngle;
-      const newRotation = initialRotation + angleDiff;
+    // Rotation
+    const currentAngle = getAngleBetweenTouches(touch1, touch2);
+    const angleDiff = currentAngle - initialAngle;
+    const newRotation = initialRotation + angleDiff;
 
-      // Zoom
-      const currentDistance = getDistanceBetweenTouches(touch1, touch2);
-      const scaleDiff = currentDistance / initialDistance;
-      let newScale = scale * scaleDiff; // Calcul de la nouvelle échelle
+    // Zoom
+    const currentDistance = getDistanceBetweenTouches(touch1, touch2);
+    const scaleDiff = currentDistance / initialDistance;
+    
+    // Obtenir la hauteur actuelle de l'image
+    const imgRect = img.getBoundingClientRect();
+    const currentScale = getCurrentScale(img);
+    const baseHeight = imgRect.height / currentScale; // Hauteur de base sans scale
+    const baseWidth = imgRect.width / currentScale; // Largeur de base sans scale
 
-      // Appliquer le facteur de zoom pour réduire la sensibilité
-      newScale = scale + (scaleDiff - 1) * zoomFactor;
+    // Calculer les limites de scale basées sur la hauteur de l'écran
+    const minScale = (screenHeight * 0.25) / baseHeight; // 25% de la hauteur d'écran
+    const maxScale = (screenHeight * 0.75) / baseHeight; // 75% de la hauteur d'écran
 
-      // Obtenir la hauteur actuelle de l'image (sans scale)
-      const imgRect = img.getBoundingClientRect();
-      const currentScale = getCurrentScale(img);
-      const baseHeight = imgRect.height / currentScale; // Hauteur de base sans scale
+    // Calculer le nouveau scale avec la logique originale
+    let newScale = Math.max(
+      minScale,
+      Math.min(scale + (scaleDiff - 1) * zoomFactor, maxScale)
+    );
 
-      // Calculer les limites de scale basées sur la hauteur de l'écran
-      const minScale = (screenHeight * 0.25) / baseHeight; // 25% de la hauteur d'écran
-      const maxScale = (screenHeight * 0.75) / baseHeight; // 75% de la hauteur d'écran
-
-      // Limiter le scale entre les limites calculées
-      newScale = Math.max(minScale, Math.min(newScale, maxScale));
-
-      // Limite additionnelle pour la largeur (optionnel, pour éviter débordement horizontal)
-      const baseWidth = imgRect.width / currentScale;
-      if (baseWidth * newScale > screenWidth) {
-        newScale = Math.min(newScale, screenWidth / baseWidth);
-      }
-
-      scale = newScale; // Met à jour l'échelle actuelle
-
-      img.style.transform = `rotate(${newRotation}deg) scale(${scale})`;
-
-      setTimeout(() => keepImageInsideScreen(img), 0);
+    // Limite additionnelle pour la largeur (pour éviter débordement horizontal)
+    if (baseWidth * newScale > screenWidth) {
+      newScale = Math.min(newScale, screenWidth / baseWidth);
     }
-  };
+
+    scale = newScale; // Met à jour l'échelle actuelle
+
+    img.style.transform = `rotate(${newRotation}deg) scale(${scale})`;
+
+    setTimeout(() => keepImageInsideScreen(img), 0);
+  }
+};
+
 
   const endDrag = () => {
     isDragging = false;
