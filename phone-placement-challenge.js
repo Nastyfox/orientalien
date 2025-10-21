@@ -199,6 +199,10 @@ function makeDraggable(img) {
   };
 
 const zoomFactor = 0.05; // Réduit la sensibilité du zoom
+const rotationThreshold = 5; // Seuil en degrés pour détecter une rotation intentionnelle
+const zoomThreshold = 10; // Seuil en pixels pour détecter un zoom intentionnel
+
+let gestureType = null; // 'rotation', 'zoom', ou null
 
 const onDrag = (e) => {
   if (isDragging) {
@@ -222,49 +226,73 @@ const onDrag = (e) => {
   ) {
     const [touch1, touch2] = e.touches;
 
-    // Rotation
+    // Calculer les changements
     const currentAngle = getAngleBetweenTouches(touch1, touch2);
-    const angleDiff = currentAngle - initialAngle;
-    const newRotation = initialRotation + angleDiff;
-
-    // Zoom
+    const angleDiff = Math.abs(currentAngle - initialAngle);
+    
     const currentDistance = getDistanceBetweenTouches(touch1, touch2);
-    const scaleDiff = currentDistance / initialDistance;
-    
-    // Calculer le nouveau scale avec la logique originale
-    let newScale = Math.max(
-      0.5,
-      Math.min(scale + (scaleDiff - 1) * zoomFactor, 3)
-    );
+    const distanceDiff = Math.abs(currentDistance - initialDistance);
 
-    // Obtenir les dimensions actuelles de l'image
-    const imgRect = img.getBoundingClientRect();
-    
-    // Calculer la hauteur que l'image aurait avec le nouveau scale
-    const currentScaleValue = getCurrentScale(img);
-    const baseHeight = imgRect.height / currentScaleValue; // Hauteur de base sans scale
-    const projectedHeight = baseHeight * newScale; // Hauteur projetée avec le nouveau scale
-    
-    // Définir les limites de hauteur (25% et 75% de la hauteur de l'écran)
-    const minHeight = screenHeight * 0.25;
-    const maxHeight = screenHeight * 0.75;
-    
-    // Ajuster le scale si la hauteur projetée dépasse les limites
-    if (projectedHeight < minHeight) {
-      newScale = minHeight / baseHeight;
-    } else if (projectedHeight > maxHeight) {
-      newScale = maxHeight / baseHeight;
-    }
-    
-    // Limite le zoom pour ne pas dépasser la largeur de l'écran
-    const baseWidth = imgRect.width / currentScaleValue;
-    const projectedWidth = baseWidth * newScale;
-    
-    if (projectedWidth > screenWidth) {
-      newScale = Math.min(newScale, screenWidth / baseWidth);
+    // Déterminer le type de geste si pas encore défini
+    if (gestureType === null) {
+      if (angleDiff > rotationThreshold && angleDiff > distanceDiff / 10) {
+        gestureType = 'rotation';
+      } else if (distanceDiff > zoomThreshold && distanceDiff > angleDiff * 2) {
+        gestureType = 'zoom';
+      }
     }
 
-    scale = newScale; // Met à jour l'échelle actuelle
+    let newRotation = initialRotation;
+    let newScale = scale;
+
+    // Appliquer uniquement la rotation OU le zoom selon le geste détecté
+    if (gestureType === 'rotation') {
+      // Rotation uniquement
+      const angleChange = currentAngle - initialAngle;
+      newRotation = initialRotation + angleChange;
+      newScale = scale; // Le scale ne change pas
+      
+    } else if (gestureType === 'zoom') {
+      // Zoom uniquement
+      const scaleDiff = currentDistance / initialDistance;
+      
+      // Calculer le nouveau scale avec la logique originale
+      newScale = Math.max(
+        0.5,
+        Math.min(scale + (scaleDiff - 1) * zoomFactor, 3)
+      );
+
+      // Obtenir les dimensions actuelles de l'image
+      const imgRect = img.getBoundingClientRect();
+      
+      // Calculer la hauteur que l'image aurait avec le nouveau scale
+      const currentScaleValue = getCurrentScale(img);
+      const baseHeight = imgRect.height / currentScaleValue;
+      const projectedHeight = baseHeight * newScale;
+      
+      // Définir les limites de hauteur (25% et 75% de la hauteur de l'écran)
+      const minHeight = screenHeight * 0.25;
+      const maxHeight = screenHeight * 0.75;
+      
+      // Ajuster le scale si la hauteur projetée dépasse les limites
+      if (projectedHeight < minHeight) {
+        newScale = minHeight / baseHeight;
+      } else if (projectedHeight > maxHeight) {
+        newScale = maxHeight / baseHeight;
+      }
+      
+      // Limite le zoom pour ne pas dépasser la largeur de l'écran
+      const baseWidth = imgRect.width / currentScaleValue;
+      const projectedWidth = baseWidth * newScale;
+      
+      if (projectedWidth > screenWidth) {
+        newScale = Math.min(newScale, screenWidth / baseWidth);
+      }
+
+      newRotation = initialRotation; // La rotation ne change pas
+    }
+
+    scale = newScale;
 
     img.style.transform = `rotate(${newRotation}deg) scale(${scale})`;
 
@@ -272,12 +300,14 @@ const onDrag = (e) => {
   }
 };
 
+const endDrag = () => {
+  isDragging = false;
+  isRotating = false;
+  isZooming = false;
+  gestureType = null; // Réinitialiser le type de geste
+};
 
-  const endDrag = () => {
-    isDragging = false;
-    isRotating = false;
-    isZooming = false;
-  };
+
 
   const getAngleBetweenTouches = (touch1, touch2) => {
     const dx = touch2.clientX - touch1.clientX;
