@@ -71,7 +71,7 @@ async function loadTeams() {
         teams.push({ name: teamName, id: teamId });
       }
     });
-
+	
     // Process each team and create UI elements
     teams.forEach((team) => {
       const teamCard = document.createElement("div");
@@ -95,10 +95,12 @@ async function loadTeams() {
       const updatePointsBtn = teamCard.querySelector(".update-points-btn");
 
       const teamName = teamCard.querySelector("h2");
+	  
+	  console.log(team.id);
 
-      loadMessagesForTeam(team.name, messageContainer, teamName);
+      loadMessagesForTeam(team.id, messageContainer, teamName);
       setInterval(function () {
-        loadMessagesForTeam(team.name, messageContainer, teamName);
+        loadMessagesForTeam(team.id, messageContainer, teamName);
       }, 30000);
 
       // Load messages when team is clicked
@@ -110,13 +112,11 @@ async function loadTeams() {
         }
       });
 	  
-	  userTeamName = await getUserTeam(db, phoneId);
-
       // Attach record message functionality
       recordBtn.addEventListener("click", (event) => {
         event.stopPropagation(); // Prevent clicking on the team card itself
         if (recordBtn.textContent === "Record Message") {
-          startRecordingForTeam(userTeamName, recordBtn);
+          startRecordingForTeam(team.id, recordBtn);
         } else {
           stopRecording(recordBtn);
         }
