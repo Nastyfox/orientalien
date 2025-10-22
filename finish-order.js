@@ -79,13 +79,13 @@ async function loadTeams() {
       teamCard.className = "team-card";
       teamCard.dataset.team = team.name;
 
-      teamCard.innerHTML = ` <h2> $ {team.name} </h2>
+      teamCard.innerHTML = ` <h2> ${team.name} </h2>
         <button class="record-time-button">Fin !</button> `;
 
       if (team.finishTime != null) {
         const finishTimeDiv = document.createElement("div");
         finishTimeDiv.className = "finish-time";
-        finishTimeDiv.innerText = `Finish Time: $ {team.finishTime}`;
+        finishTimeDiv.innerText = `Finish Time: ${team.finishTime}`;
         teamCard.appendChild(finishTimeDiv);
       }
 
@@ -116,11 +116,9 @@ async function loadTeams() {
     }
 
     if (chronoSaved > 0) {
-      const startButton = document.getElementById("startTimer");
-      startButton.disabled = true;
-      startButton.classList.add("disabled");
 	  startTime = chronoSaved;
 	  updateChronoInterval = setInterval(updateChrono, 1000);
+	  disableStartTimerButton();
     }
 
     document.getElementById("startTimer").addEventListener("click", async() => {
@@ -128,12 +126,20 @@ async function loadTeams() {
       console.log(startTime);
 	  await saveChrono();
 	  updateChronoInterval = setInterval(updateChrono, 1000);
+	  disableStartTimerButton();
     });
 
 
   } catch(error) {
     console.error("Error loading teams:", error);
   }
+}
+
+function disableStartTimerButton()
+{
+	  const startButton = document.getElementById("startTimer");
+      startButton.disabled = true;
+      startButton.classList.add("disabled");
 }
 
 let startTime;
