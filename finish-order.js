@@ -119,15 +119,17 @@ async function loadTeams() {
       const startButton = document.getElementById("startTimer");
       startButton.disabled = true;
       startButton.classList.add("disabled");
+	  startTime = chronoSaved;
+	  updateChronoInterval = setInterval(updateChrono, 1000);
     }
 
     document.getElementById("startTimer").addEventListener("click", async() => {
       startTime = chronoSaved > 0 ? chronoSaved: Date.now();
       console.log(startTime);
 	  await saveChrono();
+	  updateChronoInterval = setInterval(updateChrono, 1000);
     });
 
-    updateChronoInterval = setInterval(updateChrono, 1000);
 
   } catch(error) {
     console.error("Error loading teams:", error);
@@ -143,7 +145,6 @@ let timeDifference = 0;
 function updateChrono() {
   const currentTime = Date.now();
   timeDifference = currentTime - startTime;
-  console.log(timeDifference);
   const minutes = Math.floor(timeDifference / 60000);
   const seconds = Math.floor((timeDifference % 60000) / 1000);
   document.getElementById("chrono").innerText = `${String(minutes).padStart(
