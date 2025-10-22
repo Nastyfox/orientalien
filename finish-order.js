@@ -65,42 +65,37 @@ async function loadTeams() {
       const teamData = doc.data();
       const teamId = doc.id;
       const teamName = teamData.name;
-      const finishTime = doc.finishTime ? ?null;
+      const finishTime = doc.finishTime ?? null;
 
       // Exclude the admin team and store teams that are not admin
       if (teamId !== "admin") {
-        teams.push({
-          name: teamName,
-          finishTime: finishTime
-        });
+        teams.push({name: teamName,finishTime: finishTime});
       }
     });
 
     // Process each team and create UI elements
-    teams.forEach((team) = >{
+    teams.forEach((team) => {
       const teamCard = document.createElement("div");
       teamCard.className = "team-card";
       teamCard.dataset.team = team.name;
 
-      teamCard.innerHTML = ` < h2 > $ {
-        team.name
-      } < /h2>
-        <button class="record-time-button">Fin !</button > `;
+      teamCard.innerHTML = ` <h2> $ {team.name} </h2>
+        <button class="record-time-button">Fin !</button> `;
 
       if (team.finishTime != null) {
         const finishTimeDiv = document.createElement("div");
         finishTimeDiv.className = "finish-time";
-        finishTimeDiv.innerText = `Finish Time: $ {
-          team.finishTime
-        }`;
+        finishTimeDiv.innerText = `Finish Time: $ {team.finishTime}`;
         teamCard.appendChild(finishTimeDiv);
       }
 
       teamsContainer.appendChild(teamCard);
 
       // Ajouter un écouteur d'événement au bouton pour enregistrer le temps
-      teamCard.querySelector(".record-time-button").addEventListener("click", () = >{
-        recordTeamTime(team.name);
+      teamCard
+		.querySelector(".record-time-button")
+		.addEventListener("click", () = >{
+			recordTeamTime(team.name);
       });
     });
 
@@ -126,7 +121,7 @@ async function loadTeams() {
       startButton.classList.add("disabled");
     }
 
-    document.getElementById("startTimer").addEventListener("click", async() = >{
+    document.getElementById("startTimer").addEventListener("click", async() => {
       startTime = chronoSaved > 0 ? chronoSaved: Date.now();
       console.log(startTime);
 	  await saveChrono();
