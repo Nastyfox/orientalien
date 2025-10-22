@@ -56,57 +56,86 @@ loadTeams();
 let bestTime = null;
 
 // Load teams from Firestore and avoid showing admin team
-async function loadTeams() {
+async
+function loadTeams() {
   try {
     const teamsSnapshot = await getDocs(collection(db, "teams"));
     const teams = [];
 
-    teamsSnapshot.forEach((doc) => {
+    teamsSnapshot.forEach((doc) = >{
       const teamData = doc.data();
       const teamId = doc.id;
       const teamName = teamData.name;
-      const finishTime = doc.finishTime ?? null;
+      const finishTime = doc.finishTime ? ?null;
 
       // Exclude the admin team and store teams that are not admin
       if (teamId !== "admin") {
-        teams.push({ name: teamName, finishTime: finishTime });
+        teams.push({
+          name: teamName,
+          finishTime: finishTime
+        });
       }
     });
 
     // Process each team and create UI elements
-    teams.forEach((team) => {
+    teams.forEach((team) = >{
       const teamCard = document.createElement("div");
       teamCard.className = "team-card";
       teamCard.dataset.team = team.name;
 
-      teamCard.innerHTML = `
-        <h2>${team.name}</h2>
-        <button class="record-time-button">Fin !</button>
-      `;
+      teamCard.innerHTML = ` < h2 > $ {
+        team.name
+      } < /h2>
+        <button class="record-time-button">Fin !</button > `;
 
       if (team.finishTime != null) {
         const finishTimeDiv = document.createElement("div");
         finishTimeDiv.className = "finish-time";
-        finishTimeDiv.innerText = `Finish Time: ${team.finishTime}`;
+        finishTimeDiv.innerText = `Finish Time: $ {
+          team.finishTime
+        }`;
         teamCard.appendChild(finishTimeDiv);
       }
 
       teamsContainer.appendChild(teamCard);
 
       // Ajouter un écouteur d'événement au bouton pour enregistrer le temps
-      teamCard
-        .querySelector(".record-time-button")
-        .addEventListener("click", () => {
-          recordTeamTime(team.name);
-        });
+      teamCard.querySelector(".record-time-button").addEventListener("click", () = >{
+        recordTeamTime(team.name);
+      });
     });
 
-    document
-      .getElementById("startTimer")
-      .addEventListener("click", async () => {
-        await startChrono();
-      });
-  } catch (error) {
+    const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
+    let chronoSaved = null;
+
+    try {
+      const adminTeamDoc = await getDoc(adminTeamRef);
+
+      if (adminTeamDoc.exists()) {
+        const adminTeamData = adminTeamDoc.data();
+        chronoSaved = adminTeamData.chrono;
+      } else {
+        console.error("Admin team document does not exist.");
+      }
+    } catch(error) {
+      console.error("Error getting team admin:", error);
+    }
+
+    if (chronoSaved > 0) {
+      const startButton = document.getElementById("startTimer");
+      startButton.disabled = true;
+      startButton.classList.add("disabled");
+    }
+
+    document.getElementById("startTimer").addEventListener("click", async() = >{
+      startTime = chronoSaved > 0 ? chronoSaved: Date.now();
+      console.log(startTime);
+	  await saveChrono();
+    });
+
+    updateChronoInterval = setInterval(updateChrono, 1000);
+
+  } catch(error) {
     console.error("Error loading teams:", error);
   }
 }
@@ -116,35 +145,6 @@ let updateChronoInterval;
 let saveChronoInterval;
 let elapsedTime = 0;
 let timeDifference = 0;
-
-async function startChrono() {
-  const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
-  let chronoSaved = null;
-
-  try {
-    const adminTeamDoc = await getDoc(adminTeamRef);
-
-    if (adminTeamDoc.exists()) {
-      const adminTeamData = adminTeamDoc.data();
-      chronoSaved = adminTeamData.chrono;
-    } else {
-      console.error("Admin team document does not exist.");
-    }
-  } catch (error) {
-    console.error("Error getting team admin:", error);
-  }
-
-  startTime = chronoSaved > 0 ? chronoSaved : Date.now();
-  console.log(startTime);
-  updateChronoInterval = setInterval(updateChrono, 1000);
-  saveChronoInterval = setInterval(async () => {
-    await saveChrono();
-  }, 30000);
-
-  const startButton = document.getElementById("startTimer");
-  startButton.disabled = true;
-  startButton.classList.add("disabled");
-}
 
 function updateChrono() {
   const currentTime = Date.now();
@@ -160,12 +160,10 @@ function updateChrono() {
 
 async function saveChrono() {
   const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
-  
-  console.log(timeDifference);
 
   try {
     await updateDoc(adminTeamRef, {
-      chrono: timeDifference,
+      chrono: startTime,
     });
     console.log("Chrono saved successfully.");
   } catch (error) {
