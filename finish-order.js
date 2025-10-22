@@ -51,13 +51,12 @@ const teamsContainer = document.getElementById("teams-container");
 let userTeamName = null;
 const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
 
-loadTeams();
+await loadTeams();
 
 let bestTime = null;
 
 // Load teams from Firestore and avoid showing admin team
-async
-function loadTeams() {
+async function loadTeams() {
   try {
     const teamsSnapshot = await getDocs(collection(db, "teams"));
     const teams = [];
