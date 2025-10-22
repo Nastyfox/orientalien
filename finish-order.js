@@ -94,7 +94,7 @@ async function loadTeams() {
       // Ajouter un écouteur d'événement au bouton pour enregistrer le temps
       teamCard
 		.querySelector(".record-time-button")
-		.addEventListener("click", () = >{
+		.addEventListener("click", () => {
 			recordTeamTime(team.name);
       });
     });
