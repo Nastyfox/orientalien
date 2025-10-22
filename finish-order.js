@@ -134,7 +134,7 @@ async function startChrono() {
     console.error("Error getting team admin:", error);
   }
 
-  startTime = chronoSaved ?? Date.now();
+  startTime = Date.now();
   console.log(startTime);
   updateChronoInterval = setInterval(updateChrono, 1000);
   saveChronoInterval = setInterval(async () => {
