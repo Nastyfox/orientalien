@@ -135,6 +135,7 @@ async function startChrono() {
   }
 
   startTime = chronoSaved ?? Date.now();
+  console.log(startTime);
   updateChronoInterval = setInterval(updateChrono, 1000);
   saveChronoInterval = setInterval(async () => {
     await saveChrono();
@@ -148,6 +149,7 @@ async function startChrono() {
 function updateChrono() {
   const currentTime = Date.now();
   timeDifference = currentTime - startTime;
+  console.log(timeDifference);
   const minutes = Math.floor(timeDifference / 60000);
   const seconds = Math.floor((timeDifference % 60000) / 1000);
   document.getElementById("chrono").innerText = `${String(minutes).padStart(
@@ -158,10 +160,12 @@ function updateChrono() {
 
 async function saveChrono() {
   const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
+  
+  console.log(timeDifference);
 
   try {
     await updateDoc(adminTeamRef, {
-      chrono: startTime,
+      chrono: timeDifference,
     });
     console.log("Chrono saved successfully.");
   } catch (error) {
