@@ -71,7 +71,7 @@ async function loadTeams() {
       const teamData = doc.data();
       teamId = doc.id;
       const teamName = teamData.name;
-      const finishTime = doc.finishTime ?? null;
+      const finishTime = teamData.finishTime ?? null;
 
       // Exclude the admin team and store teams that are not admin
       if (teamId !== "admin") {
@@ -85,8 +85,7 @@ async function loadTeams() {
       teamCard.className = "team-card";
       teamCard.dataset.team = team.name;
 
-      teamCard.innerHTML = ` <h2> ${team.name} </h2>
-        <button class="record-time-button">Fin !</button> `;
+      teamCard.innerHTML = ` <h2> ${team.name} </h2>`;
 
       if (team.finishTime != null) {
         const finishTimeDiv = document.createElement("div");
@@ -94,6 +93,11 @@ async function loadTeams() {
         finishTimeDiv.innerText = `Finish Time: ${team.finishTime}`;
         teamCard.appendChild(finishTimeDiv);
       }
+	  else
+	  {
+		  teamCard.innerHTML = ` <h2> ${team.name} </h2>
+			<button class="record-time-button">Fin !</button> `;
+	  }
 
       teamsContainer.appendChild(teamCard);
 
@@ -145,9 +149,9 @@ async function loadTeams() {
 
 function disableStartTimerButton()
 {
-	  const startButton = document.getElementById("startTimer");
-      startButton.disabled = true;
-      startButton.classList.add("disabled");
+  const startButton = document.getElementById("startTimer");
+  startButton.disabled = true;
+  startButton.classList.add("disabled");
 }
 
 function updateChrono() {
