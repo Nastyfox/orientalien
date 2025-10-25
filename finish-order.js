@@ -51,9 +51,14 @@ const teamsContainer = document.getElementById("teams-container");
 let userTeamName = null;
 const phoneId = getOrCreateUniqueId(); // Get the user's phone ID
 
-await loadTeams();
-
+let startTime = 0;
+let updateChronoInterval;
+let saveChronoInterval;
+let elapsedTime = 0;
+let timeDifference = 0;
 let bestTime = null;
+
+await loadTeams();
 
 // Load teams from Firestore and avoid showing admin team
 async function loadTeams() {
@@ -114,6 +119,8 @@ async function loadTeams() {
     } catch(error) {
       console.error("Error getting team admin:", error);
     }
+	
+	startTime = 0;
 
     if (chronoSaved > 0) {
 	  startTime = chronoSaved;
@@ -141,12 +148,6 @@ function disableStartTimerButton()
       startButton.disabled = true;
       startButton.classList.add("disabled");
 }
-
-let startTime = 0;
-let updateChronoInterval;
-let saveChronoInterval;
-let elapsedTime = 0;
-let timeDifference = 0;
 
 function updateChrono() {
   const currentTime = Date.now();
