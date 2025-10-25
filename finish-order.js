@@ -71,7 +71,7 @@ async function loadTeams() {
       const teamData = doc.data();
       teamId = doc.id;
       const teamName = teamData.name;
-      const finishTime = teamData.finishTime > 0 ? teamData.finishTime : null;
+      const finishTime = teamData.finishTime != "" ? teamData.finishTime : null;
 
       // Exclude the admin team and store teams that are not admin
       if (teamId !== "admin") {
