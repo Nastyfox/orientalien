@@ -97,16 +97,16 @@ async function loadTeams() {
 	  {
 		  teamCard.innerHTML = ` <h2> ${team.name} </h2>
 			<button class="record-time-button">Fin !</button> `;
-	  }
-
-      teamsContainer.appendChild(teamCard);
-
-      // Ajouter un écouteur d'événement au bouton pour enregistrer le temps
+			
+		// Ajouter un écouteur d'événement au bouton pour enregistrer le temps
       teamCard
 		.querySelector(".record-time-button")
 		.addEventListener("click", () => {
 			recordTeamTime(team.name, team.id);
       });
+	  }
+
+      teamsContainer.appendChild(teamCard);
     });
 
     const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
