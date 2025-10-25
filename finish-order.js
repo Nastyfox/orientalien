@@ -142,7 +142,7 @@ function disableStartTimerButton()
       startButton.classList.add("disabled");
 }
 
-let startTime;
+let startTime = 0;
 let updateChronoInterval;
 let saveChronoInterval;
 let elapsedTime = 0;
@@ -172,14 +172,42 @@ async function saveChrono() {
   }
 }
 
+async function saveBestTime() {
+  const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
+
+  try {
+    await updateDoc(adminTeamRef, {
+      bestTime: bestTime,
+    });
+    console.log("Best Time saved successfully.");
+  } catch (error) {
+    console.error("Error saving best time:", error);
+  }
+}
+
 // Fonction pour enregistrer le temps d'une équipe
 async function recordTeamTime(teamName) {
   const teamRef = doc(db, "teams", teamName);
   const teamTime = document.getElementById("chrono").innerText;
   let diffTime = null;
+  
+  const adminTeamRef = doc(db, "teams", "admin"); // Change this to your actual document path
+  try {
+      const adminTeamDoc = await getDoc(adminTeamRef);
 
-  if (bestTime == null) {
+      if (adminTeamDoc.exists()) {
+        const adminTeamData = adminTeamDoc.data();
+        bestTime = adminTeamData.bestTime;
+      } else {
+        console.error("Admin team document does not exist.");
+      }
+    } catch(error) {
+      console.error("Error getting team admin:", error);
+    }
+
+  if (bestTime <= 0) {
     bestTime = teamTime;
+	await saveBestTime();
   } else {
     diffTime = timeToSeconds(bestTime) - timeToSeconds(teamTime);
 
