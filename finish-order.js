@@ -214,7 +214,7 @@ async function recordTeamTime(teamName, teamId) {
     diffTime = timeToSeconds(bestTime) - timeToSeconds(teamTime);
 
 	console.log(teamName + " " + diffTime);
-    await addPoints(teamName, diffTime);
+    await addPoints(teamId, diffTime);
   }
 
   // Ajouter une div pour afficher le temps de l'équipe
