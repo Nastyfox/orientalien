@@ -65,7 +65,7 @@ async function loadTeams() {
   try {
     const teamsSnapshot = await getDocs(collection(db, "teams"));
     const teams = [];
-	const teamId = null;
+	let teamId = null;
 
     teamsSnapshot.forEach((doc) => {
       const teamData = doc.data();
