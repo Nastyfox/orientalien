@@ -75,7 +75,7 @@ async function loadTeams() {
 
       // Exclude the admin team and store teams that are not admin
       if (teamId !== "admin") {
-        teams.push({name: teamName, finishTime: finishTime});
+        teams.push({name: teamName, finishTime: finishTime, id: teamId});
       }
     });
 
@@ -101,7 +101,7 @@ async function loadTeams() {
       teamCard
 		.querySelector(".record-time-button")
 		.addEventListener("click", () => {
-			recordTeamTime(team.name, teamId);
+			recordTeamTime(team.name, team.id);
       });
     });
 
