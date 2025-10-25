@@ -101,7 +101,7 @@ async function loadTeams() {
       teamCard
 		.querySelector(".record-time-button")
 		.addEventListener("click", () => {
-			recordTeamTime(teamId);
+			recordTeamTime(team.name, teamId);
       });
     });
 
@@ -188,7 +188,7 @@ async function saveBestTime() {
 }
 
 // Fonction pour enregistrer le temps d'une équipe
-async function recordTeamTime(teamName) {
+async function recordTeamTime(teamName, teamId) {
   const teamRef = doc(db, "teams", teamName);
   const teamTime = document.getElementById("chrono").innerText;
   let diffTime = null;
